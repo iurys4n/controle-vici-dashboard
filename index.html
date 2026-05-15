@@ -991,6 +991,7 @@
 
   <script>
     const STORAGE_KEY = "hours-dashboard-edits-v5";
+    const MIGRATION_KEY = "hours-dashboard-fill-4h-v1";
     const CLOUD_ENDPOINT = "https://script.google.com/macros/s/AKfycbyh3qFaOkBzxyDra03EsYdZC6onZOn7L1HKUe9oh_ObZ9QjmYi-ZxyBhy1NeVH0HmUf/exec";
     const data = loadData();
     const months = data.months;
@@ -1067,6 +1068,25 @@
       }
       entry.task = entry.tags.join(" / ");
       return entry;
+    }
+
+    function fillFutureZeroHours(targetData = data) {
+      const monthsToFill = new Set(["MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"]);
+      let changed = false;
+      targetData.months.forEach((month) => {
+        if (!monthsToFill.has(month.name)) return;
+        month.entries.forEach((entry) => {
+          if (Number(entry.hours || 0) === 0) {
+            entry.hours = 4;
+            changed = true;
+          }
+        });
+      });
+      if (changed) {
+        normalizeAllEntries(targetData);
+        recalculateAll(targetData);
+      }
+      return changed;
     }
 
     function saveData() {
@@ -1159,6 +1179,7 @@
         }
       });
       normalizeAllEntries();
+      const migrated = localStorage.getItem(MIGRATION_KEY) !== "done" && fillFutureZeroHours();
       recalculateAll();
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         months: months.map((month) => ({
@@ -1166,6 +1187,10 @@
           entries: month.entries,
         })),
       }));
+      if (migrated) {
+        localStorage.setItem(MIGRATION_KEY, "done");
+        queueCloudSave();
+      }
       return true;
     }
 
