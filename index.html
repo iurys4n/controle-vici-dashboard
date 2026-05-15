@@ -235,7 +235,7 @@
       border-radius: 999px;
       text-align: center;
       background: rgba(10,132,255,0.1);
-      color: var(--accent);
+      color: #0a84ff;
       font-size: 0.82rem;
       font-weight: 700;
       white-space: nowrap;
@@ -483,7 +483,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: 12px;
       margin-bottom: 14px;
     }
@@ -497,11 +497,13 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       margin-left: auto;
+      min-width: 0;
     }
 
     .panel-tool {
+      flex: 0 0 auto;
       min-height: 42px;
       padding: 0 14px;
       border-radius: 999px;
@@ -802,6 +804,7 @@
       align-items: center;
       gap: 10px;
       width: min(100%, 280px);
+      flex: 0 1 280px;
       min-height: 42px;
       padding: 0 16px;
       border-radius: 999px;
@@ -969,7 +972,8 @@
       .kpi small { font-size: 0.78rem; }
       .panel-title { margin-bottom: 10px; align-items: flex-start; }
       .panel-title .search-panel { margin-left: 0; margin-right: 0; }
-      .panel-actions { width: 100%; margin-left: 0; gap: 6px; }
+      .panel-title { flex-wrap: wrap; }
+      .panel-actions { width: 100%; margin-left: 0; gap: 6px; flex-wrap: wrap; }
       .panel-tool { min-height: 34px; padding: 0 10px; font-size: 0.74rem; }
       h2 { font-size: 0.95rem; }
       .entry { grid-template-columns: 50px 98px minmax(0, 1fr); }
@@ -1035,7 +1039,7 @@
             </div>
             <div class="panel-actions">
               <button class="panel-tool" id="pendingToggle" type="button">Pendentes</button>
-              <button class="panel-tool" id="exportMonthBtn" type="button">Exportar</button>
+              <button class="panel-tool" id="exportMonthBtn" type="button">Relatório</button>
               <div class="search-panel">
                 <input class="entry-input" id="activitySearch" type="search" placeholder="Buscar">
               </div>
@@ -1584,28 +1588,258 @@
 
     function exportSelectedMonth() {
       const month = months[selectedIndex];
-      const lines = [
-        `CONTROLE DE HORAS - VICI / IURY`,
-        `Mês: ${month.name}`,
-        `Horas realizadas: ${fmtHours(month.totalHours)}`,
-        `Meta ajustada: ${fmtHours(month.adjustedTarget)}`,
-        `Saldo final: ${fmtBalance(month.balance)}`,
-        "",
-        "Lançamentos:",
-        ...month.entries.map((entry) => {
-          const task = activityText(entry) || "Sem atividade";
-          return `${entry.day} - ${fmtHours(entry.hours)} - ${task}`;
-        }),
-      ];
-      const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `controle-vici-${month.name.toLowerCase()}.txt`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
+      const report = buildMonthlyReport(month);
+      const reportWindow = window.open("", "_blank");
+      if (!reportWindow) return;
+      reportWindow.document.open();
+      reportWindow.document.write(report);
+      reportWindow.document.close();
+      reportWindow.focus();
+      reportWindow.addEventListener("load", () => {
+        reportWindow.print();
+      }, { once: true });
+    }
+
+    function buildMonthlyReport(month) {
+      const topActivities = getTopActivities(month);
+      const generatedAt = new Date().toLocaleDateString("pt-BR");
+      const balanceLabel = month.balance < 0 ? "Saldo positivo" : month.balance > 0 ? "Pendente" : "Fechado";
+      const balanceText = month.balance < 0 ? `+${fmtHours(Math.abs(month.balance))}` : fmtHours(month.balance);
+      return `<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Controle de horas | Iury ${month.name}</title>
+  <style>
+    @page { size: A4; margin: 14mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+      color: #182033;
+      background: #eef4fb;
+    }
+    .page {
+      min-height: 100vh;
+      padding: 26px;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(10,132,255,0.12), transparent 30%),
+        radial-gradient(circle at 90% 8%, rgba(52,199,89,0.1), transparent 26%),
+        linear-gradient(180deg, #f8fbff 0%, #edf4fb 100%);
+    }
+    .hero, .card, .table-wrap {
+      background: rgba(255,255,255,0.76);
+      border: 1px solid rgba(255,255,255,0.86);
+      border-radius: 24px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 18px 48px rgba(70,96,128,0.12);
+    }
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 26px;
+      margin-bottom: 16px;
+    }
+    .eyebrow {
+      margin: 0 0 10px;
+      color: #788291;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      font-size: 40px;
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+    .meta {
+      text-align: right;
+      color: #788291;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .card {
+      min-height: 116px;
+      padding: 18px;
+      display: grid;
+      align-content: space-between;
+    }
+    .card span {
+      color: #788291;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .card strong {
+      font-size: 30px;
+      line-height: 1;
+    }
+    .card small {
+      color: #788291;
+      font-size: 12px;
+    }
+    .section {
+      margin: 20px 0 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 16px;
+    }
+    h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .section p {
+      margin: 4px 0 0;
+      color: #788291;
+      font-size: 12px;
+    }
+    .activity-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .activity {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.68);
+      border: 1px solid rgba(10,132,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .activity strong {
+      color: #0a84ff;
+      white-space: nowrap;
+    }
+    .table-wrap {
+      padding: 10px;
+      overflow: hidden;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    th {
+      color: #788291;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-align: left;
+      padding: 10px;
+    }
+    td {
+      padding: 10px;
+      border-top: 1px solid rgba(20,32,48,0.06);
+      vertical-align: top;
+    }
+    td:nth-child(1), td:nth-child(2) {
+      width: 70px;
+      font-weight: 800;
+      color: #0a84ff;
+    }
+    tr:nth-child(even) td {
+      background: rgba(236,245,255,0.45);
+    }
+    .footer {
+      margin-top: 14px;
+      color: #788291;
+      font-size: 11px;
+      text-align: right;
+    }
+    @media print {
+      body { background: white; }
+      .page { min-height: auto; padding: 0; background: white; }
+      .hero, .card, .table-wrap { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Controle VICI / Iury</p>
+        <h1>Controle de horas<br>${escapeHtml(month.name)}</h1>
+      </div>
+      <div class="meta">
+        <strong>Relatório mensal</strong><br>
+        Gerado em ${generatedAt}<br>
+        ${month.entries.length} dias lançados
+      </div>
+    </section>
+
+    <section class="kpis">
+      <article class="card"><span>Horas trabalhadas</span><strong>${fmtHours(month.totalHours)}</strong><small>${month.workedDays} dias com horas</small></article>
+      <article class="card"><span>Meta ajustada</span><strong>${fmtHours(month.adjustedTarget)}</strong><small>80h + saldo anterior</small></article>
+      <article class="card"><span>${balanceLabel}</span><strong>${escapeHtml(balanceText)}</strong><small>${month.balance < 0 ? "crédito para o próximo mês" : "saldo a cumprir"}</small></article>
+      <article class="card"><span>Cumprimento</span><strong>${fmtPct(month.completion)}</strong><small>sobre a meta ajustada</small></article>
+    </section>
+
+    <section class="section">
+      <div>
+        <h2>Principais atividades</h2>
+        <p>Atividades ordenadas pelo tempo estimado dedicado no mês.</p>
+      </div>
+    </section>
+    <div class="activity-grid">
+      ${topActivities.length ? topActivities.map((item) => `
+        <div class="activity"><span>${escapeHtml(item.tag)}</span><strong>${fmtHours(item.hours)}</strong></div>
+      `).join("") : `<div class="activity"><span>Nenhuma atividade registrada</span><strong>0h</strong></div>`}
+    </div>
+
+    <section class="section">
+      <div>
+        <h2>Detalhamento diário</h2>
+        <p>Horas e atividades registradas por dia.</p>
+      </div>
+    </section>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Dia</th><th>Horas</th><th>Atividades</th></tr></thead>
+        <tbody>
+          ${month.entries.map((entry) => `
+            <tr>
+              <td>${escapeHtml(entry.day)}</td>
+              <td>${fmtHours(entry.hours)}</td>
+              <td>${escapeHtml(activityText(entry) || "Sem atividade")}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+    <div class="footer">Controle de horas | Iury ${escapeHtml(month.name)}</div>
+  </main>
+</body>
+</html>`;
+    }
+
+    function getTopActivities(month) {
+      const totals = new Map();
+      month.entries.forEach((entry) => {
+        normalizeEntryTags(entry);
+        const tags = entry.tags.length ? entry.tags : ["Sem atividade"];
+        const share = Number(entry.hours || 0) / tags.length;
+        tags.forEach((tag) => {
+          totals.set(tag, Number(((totals.get(tag) || 0) + share).toFixed(2)));
+        });
+      });
+      return Array.from(totals, ([tag, hours]) => ({ tag, hours }))
+        .filter((item) => item.hours > 0)
+        .sort((a, b) => b.hours - a.hours)
+        .slice(0, 8);
     }
 
     function handleTagRemove(event) {
