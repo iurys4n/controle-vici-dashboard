@@ -1149,7 +1149,8 @@
       targetData.months.forEach((month) => {
         if (!monthsToFill.has(month.name)) return;
         month.entries.forEach((entry) => {
-          if (Number(entry.hours || 0) === 0) {
+          normalizeEntryTags(entry);
+          if (Number(entry.hours || 0) === 0 && !isExcludedTask(activityText(entry))) {
             entry.hours = 4;
             changed = true;
           }
