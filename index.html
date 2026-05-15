@@ -1,0 +1,1505 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CONTROLE VICI + IURY</title>
+  <link rel="icon" href="./vici_favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="./vici_favicon.png">
+  <link rel="apple-touch-icon" href="./vici_favicon_180.png">
+  <script src="./hours_data.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg:
+        radial-gradient(circle at 8% 10%, rgba(10,132,255,0.12), transparent 28%),
+        radial-gradient(circle at 92% 6%, rgba(52,199,89,0.13), transparent 24%),
+        radial-gradient(circle at 58% 96%, rgba(175,82,222,0.08), transparent 28%),
+        linear-gradient(180deg, #f4f8fd 0%, #fbfdff 48%, #f2f6fb 100%);
+      --panel: rgba(255, 255, 255, 0.58);
+      --panel-strong: rgba(255, 255, 255, 0.78);
+      --line: rgba(255, 255, 255, 0.66);
+      --line-soft: rgba(16, 19, 26, 0.08);
+      --text: #121826;
+      --muted: rgba(18, 24, 38, 0.58);
+      --accent: #0a84ff;
+      --green: #34c759;
+      --red: #ff3b30;
+      --orange: #ff9f0a;
+      --blue-soft: rgba(221, 243, 252, 0.92);
+      --lilac-soft: rgba(233, 229, 252, 0.92);
+      --rose-soft: rgba(247, 229, 233, 0.92);
+      --mint-soft: rgba(229, 244, 217, 0.92);
+      --peach-soft: rgba(255, 236, 214, 0.92);
+      --radius-xl: 30px;
+      --radius-lg: 22px;
+      --radius-md: 14px;
+      --shadow: 0 24px 70px rgba(93, 113, 151, 0.16);
+      --inner: inset 0 1px 0 rgba(255,255,255,0.75);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+      letter-spacing: 0;
+      color: var(--text);
+      background: var(--bg);
+      background-attachment: fixed;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(120deg, rgba(255,255,255,0.24), transparent 48%);
+      mix-blend-mode: screen;
+    }
+
+    button, select { font: inherit; }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      width: min(100% - 22px, 1500px);
+      height: calc(100vh - 24px);
+      margin: 12px auto;
+      display: grid;
+      grid-template-columns: 248px minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .glass {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+      background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.62));
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      clip-path: inset(0 round var(--radius-xl));
+      box-shadow: var(--inner), var(--shadow);
+      backdrop-filter: blur(28px) saturate(160%);
+      -webkit-backdrop-filter: blur(28px) saturate(160%);
+    }
+
+    .glass::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0.24), transparent 38%, rgba(255,255,255,0.1));
+      opacity: 0.62;
+    }
+
+    .sidebar {
+      min-height: 0;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .brand {
+      padding: 12px 8px 18px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .eyebrow {
+      margin: 0 0 9px;
+      font-size: 0.72rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--muted);
+      width: 100%;
+      text-align: justify;
+      text-align-last: justify;
+    }
+
+    .eyebrow::after {
+      content: "";
+      display: inline-block;
+      width: 100%;
+    }
+
+    .current-month-btn {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid rgba(149,205,255,0.48);
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.58), rgba(255,255,255,0.22)),
+        linear-gradient(120deg, rgba(221,243,252,0.34), rgba(255,255,255,0.06));
+      color: var(--text);
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.82),
+        inset 0 -1px 0 rgba(149,205,255,0.18),
+        0 0 0 1px rgba(255,255,255,0.34),
+        0 16px 36px rgba(93,113,151,0.09);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+    }
+
+    .current-month-btn:hover {
+      border-color: rgba(91,173,255,0.5);
+      background:
+        linear-gradient(180deg, rgba(246,251,255,0.68), rgba(255,255,255,0.3)),
+        linear-gradient(120deg, rgba(10,132,255,0.1), rgba(52,199,89,0.04));
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.4rem, 4vw, 4rem);
+      line-height: 0.98;
+      letter-spacing: 0;
+      text-transform: lowercase;
+    }
+
+    .subtitle {
+      margin: 14px 0 0;
+      max-width: 720px;
+      font-size: 1rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .nav {
+      display: grid;
+      gap: 7px;
+      min-height: 0;
+      overflow: auto;
+    }
+
+    .month-btn {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.16);
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      cursor: pointer;
+    }
+
+    .month-btn:nth-child(even) {
+      background: rgba(236,245,255,0.26);
+    }
+
+    .month-btn:hover,
+    .month-btn.is-active {
+      background: rgba(255,255,255,0.62);
+      border-color: rgba(10,132,255,0.18);
+      color: var(--text);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+    }
+
+    .month-btn.is-active {
+      border-color: rgba(10,132,255,0.38);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.78), 0 0 0 1px rgba(10,132,255,0.08);
+    }
+
+    .month-pill {
+      min-width: 54px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      text-align: center;
+      background: rgba(10,132,255,0.1);
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .sidebar-metric {
+      margin-top: auto;
+      display: grid;
+      gap: 10px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line-soft);
+    }
+
+    .tiny-stat {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 42px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.5);
+    }
+
+    .tiny-stat span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .tiny-stat strong {
+      font-size: 0.96rem;
+    }
+
+    main {
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+      gap: 14px;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .hero {
+      padding: 16px 24px;
+      min-height: 96px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(360px, 520px);
+      align-items: center;
+      gap: 20px;
+    }
+
+    .title-lockup {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .hero-logo {
+      width: clamp(42px, 4.2vw, 60px);
+      height: clamp(42px, 4.2vw, 60px);
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.58), rgba(255,255,255,0.24)),
+        linear-gradient(135deg, rgba(10,132,255,0.08), rgba(52,199,89,0.035));
+      border: 1px solid rgba(149,205,255,0.46);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.84),
+        inset 0 -1px 0 rgba(149,205,255,0.18),
+        0 0 0 1px rgba(255,255,255,0.32),
+        0 16px 34px rgba(93,113,151,0.1);
+      backdrop-filter: blur(22px) saturate(160%);
+      -webkit-backdrop-filter: blur(22px) saturate(160%);
+    }
+
+    .hero-logo img {
+      width: 64%;
+      height: 64%;
+      object-fit: contain;
+      display: block;
+      mix-blend-mode: multiply;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+      justify-items: stretch;
+    }
+
+    .select-shell {
+      padding: 0;
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.56), rgba(255,255,255,0.24)),
+        linear-gradient(120deg, rgba(10,132,255,0.055), rgba(52,199,89,0.035));
+      border: 1px solid rgba(149,205,255,0.48);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.82),
+        inset 0 -1px 0 rgba(149,205,255,0.18),
+        0 0 0 1px rgba(255,255,255,0.34),
+        0 16px 36px rgba(93,113,151,0.09);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      position: relative;
+    }
+
+    .select-shell::after {
+      content: "";
+      position: absolute;
+      right: 22px;
+      top: 50%;
+      width: 7px;
+      height: 7px;
+      border-right: 1.5px solid var(--text);
+      border-bottom: 1.5px solid var(--text);
+      transform: translateY(-65%) rotate(45deg);
+      pointer-events: none;
+      opacity: 0.62;
+    }
+
+    label {
+      display: block;
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    select {
+      width: 100%;
+      min-height: 50px;
+      border: 1px solid transparent;
+      border-radius: 18px;
+      padding: 0 46px 0 16px;
+      background: transparent;
+      color: var(--text);
+      outline: none;
+      font-size: 0.92rem;
+      font-weight: 700;
+      box-shadow: none;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .status-chip {
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 18px;
+      padding: 0 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.68), rgba(255,255,255,0.42));
+      border: 1px solid rgba(255,255,255,0.7);
+      color: var(--text);
+      font-size: 0.92rem;
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+      text-transform: uppercase;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.78), 0 18px 42px rgba(93,113,151,0.12);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+    }
+
+    .status-chip.negative {
+      background: linear-gradient(180deg, rgba(255,236,236,0.86), rgba(255,255,255,0.42));
+      border-color: rgba(255,255,255,0.72);
+      color: #d92d20;
+    }
+
+    .status-chip.positive {
+      background: linear-gradient(180deg, rgba(223,247,231,0.88), rgba(255,255,255,0.42));
+      border-color: rgba(255,255,255,0.72);
+      color: #1f8f4d;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .kpi {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+      min-height: 154px;
+      padding: 20px;
+      border-radius: var(--radius-lg);
+      clip-path: inset(0 round var(--radius-lg));
+      border: 1px solid var(--line);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .kpi:nth-child(1) { background: linear-gradient(180deg, var(--blue-soft), rgba(255,255,255,0.58)); }
+    .kpi:nth-child(2) { background: linear-gradient(180deg, var(--lilac-soft), rgba(255,255,255,0.58)); }
+    .kpi:nth-child(3) { background: linear-gradient(180deg, var(--rose-soft), rgba(255,255,255,0.58)); }
+    .kpi:nth-child(4) { background: linear-gradient(180deg, var(--mint-soft), rgba(255,255,255,0.58)); }
+
+    .kpi span {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .kpi strong {
+      font-size: clamp(2rem, 4vw, 3.1rem);
+      line-height: 1;
+    }
+
+    .kpi small {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      align-items: start;
+      min-height: 0;
+    }
+
+    .panel {
+      padding: 18px;
+      min-width: 0;
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .panel-title .search-panel {
+      margin-left: auto;
+      margin-right: 8px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.08rem;
+      letter-spacing: 0;
+    }
+
+    .panel-title span {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 280px;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 3px;
+      flex: 1;
+      min-height: 0;
+      max-height: none;
+      overflow: auto;
+      padding: 0 4px 46px 0;
+      scroll-snap-type: y mandatory;
+      scroll-padding: 38px 0 46px;
+      scroll-behavior: smooth;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+    }
+
+    .entry {
+      display: grid;
+      grid-template-columns: 58px 112px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      min-height: 42px;
+      padding: 4px 10px;
+      border-radius: 11px;
+      background: rgba(255,255,255,0.48);
+      border: 1px solid rgba(255,255,255,0.5);
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+
+    .entry:nth-child(even) {
+      background: rgba(236, 245, 255, 0.48);
+    }
+
+    .entry:nth-child(odd):not(.header) {
+      background: rgba(255,255,255,0.6);
+    }
+
+    .entry.header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      min-height: 34px;
+      background: rgba(255,255,255,0.82);
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      scroll-snap-align: none;
+    }
+
+    .entry-day {
+      display: grid;
+      place-items: center;
+      min-height: 38px;
+      border-radius: 12px;
+      background: rgba(10,132,255,0.1);
+      color: var(--accent);
+      font-weight: 800;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .entry-hours {
+      font-weight: 800;
+      text-align: center;
+      color: var(--text);
+    }
+
+    .hours-stepper {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr) 28px;
+      align-items: center;
+      gap: 4px;
+      min-height: 32px;
+    }
+
+    .hour-step {
+      width: 28px;
+      height: 28px;
+      border: 1px solid rgba(10,132,255,0.12);
+      border-radius: 9px;
+      background: rgba(255,255,255,0.18);
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1;
+      box-shadow: none;
+      opacity: 0.78;
+    }
+
+    .hour-step:hover {
+      background: rgba(10,132,255,0.08);
+      border-color: rgba(10,132,255,0.22);
+      opacity: 1;
+    }
+
+    .hour-value {
+      min-width: 0;
+      text-align: center;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .entry-task {
+      min-width: 0;
+      color: var(--text);
+      font-size: 0.94rem;
+      line-height: 1.35;
+    }
+
+    .entry-task.is-empty {
+      color: var(--muted);
+    }
+
+    .entry-input {
+      width: 100%;
+      min-height: 32px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      padding: 0 10px;
+      background: rgba(255,255,255,0.32);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.92rem;
+      outline: none;
+      box-shadow: none;
+    }
+
+    .entry-input.hours {
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .day-picker {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 32px;
+      border-radius: 9px;
+      color: var(--accent);
+      background: rgba(10,132,255,0.08);
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .day-date-input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      border: 0;
+    }
+
+    .day-date-input::-webkit-calendar-picker-indicator {
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .entry:nth-child(even) .entry-input {
+      background: rgba(255,255,255,0.22);
+    }
+
+    .entry:nth-child(even) .day-picker {
+      background: rgba(10,132,255,0.12);
+    }
+
+    .entry-input:focus {
+      border-color: rgba(10,132,255,0.42);
+      box-shadow: 0 0 0 4px rgba(10,132,255,0.1), inset 0 1px 0 rgba(255,255,255,0.72);
+    }
+
+    .tag-editor {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 32px;
+    }
+
+    .activity-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.22));
+      color: var(--text);
+      font-size: 0.86rem;
+      font-weight: 500;
+      border: 1px solid rgba(10,132,255,0.16);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+      backdrop-filter: blur(14px) saturate(140%);
+      -webkit-backdrop-filter: blur(14px) saturate(140%);
+    }
+
+    .tag-remove,
+    .tag-add {
+      border: 1px solid rgba(255,255,255,0.72);
+      background: rgba(255,255,255,0.56);
+      color: var(--accent);
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .tag-remove {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      background: rgba(255,255,255,0.42);
+      border-color: rgba(10,132,255,0.12);
+    }
+
+    .tag-add {
+      min-width: 32px;
+      min-height: 32px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .tag-input {
+      flex: 1 1 180px;
+      min-width: 140px;
+    }
+
+    .search-panel {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: min(100%, 280px);
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 999px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.66), rgba(255,255,255,0.34)),
+        linear-gradient(120deg, rgba(221,243,252,0.22), rgba(255,255,255,0.05));
+      border: 1px solid rgba(149,205,255,0.5);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.82),
+        inset 0 -1px 0 rgba(149,205,255,0.16),
+        0 12px 28px rgba(93,113,151,0.08);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+    }
+
+    .search-panel::before {
+      content: "";
+      width: 20px;
+      height: 20px;
+      flex: 0 0 auto;
+      background: url("./search_icon.png") center / contain no-repeat;
+      opacity: 1;
+    }
+
+    .search-panel .entry-input {
+      min-height: 40px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-weight: 700;
+      box-shadow: none;
+    }
+
+    .search-panel .entry-input::placeholder {
+      color: rgba(18,24,38,0.52);
+      opacity: 1;
+    }
+
+    .search-panel .entry-input:focus {
+      box-shadow: none;
+    }
+
+    .search-results {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 0;
+      margin-bottom: 10px;
+    }
+
+    .search-results:empty {
+      display: none;
+    }
+
+    .search-result {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(236,245,255,0.82);
+      color: var(--text);
+      font-size: 0.86rem;
+      font-weight: 700;
+      border: 1px solid rgba(255,255,255,0.66);
+    }
+
+    .search-empty {
+      display: none;
+    }
+
+    .summary {
+      display: none;
+    }
+
+    .summary-item {
+      min-height: 92px;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.52);
+      border: 1px solid rgba(255,255,255,0.64);
+      display: grid;
+      align-content: space-between;
+    }
+
+    .summary-item span {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .summary-item strong {
+      font-size: 1.35rem;
+    }
+
+    .heavy-day {
+      padding: 18px;
+    }
+
+    .heavy-day .entry {
+      margin-top: 12px;
+    }
+
+    .positive { color: var(--green); }
+    .negative { color: var(--red); }
+    .warning { color: var(--orange); }
+
+    @media (max-width: 1080px) {
+      body { overflow: auto; }
+      .app { height: auto; margin-bottom: 24px; }
+      .app { grid-template-columns: 1fr; }
+      .sidebar { min-height: auto; height: auto; }
+      .nav { overflow: visible; }
+      .sidebar-metric { margin-top: 0; }
+      main { grid-template-rows: none; overflow: visible; }
+      .nav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      .month-btn { padding: 0 8px; }
+      .hero { grid-template-columns: 1fr; }
+      .controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+      .grid { grid-template-columns: 1fr; }
+      .panel { height: auto; display: block; }
+      .timeline { max-height: 720px; }
+      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 640px) {
+      :root {
+        --bg:
+          radial-gradient(circle at 10% 4%, rgba(10,132,255,0.09), transparent 26%),
+          radial-gradient(circle at 92% 10%, rgba(52,199,89,0.09), transparent 24%),
+          linear-gradient(180deg, #f5f8fc 0%, #fbfdff 58%, #f3f6fa 100%);
+        --accent: #2f80ed;
+        --shadow: 0 14px 36px rgba(93, 113, 151, 0.11);
+        --radius-xl: 18px;
+      }
+
+      body { background: var(--bg); }
+
+      body::before { opacity: 0.42; }
+      .app { width: min(100% - 18px, 1500px); margin-top: 8px; gap: 10px; }
+      .glass { border-radius: 18px; clip-path: inset(0 round 18px); }
+      .hero, .panel, .sidebar, .heavy-day { padding: 12px; border-radius: 18px; }
+      .sidebar { gap: 10px; }
+      .brand { padding: 8px 6px 12px; }
+      .eyebrow { font-size: 0.62rem; margin-bottom: 8px; }
+      .current-month-btn { min-height: 36px; font-size: 0.74rem; border-radius: 14px; }
+      .nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .month-btn { min-height: 34px; border-radius: 11px; padding: 0 9px; font-size: 0.82rem; }
+      .month-pill { min-width: 46px; padding: 3px 7px; font-size: 0.72rem; }
+      .sidebar-metric { gap: 6px; padding-top: 10px; }
+      .tiny-stat { min-height: 34px; padding: 7px 10px; border-radius: 12px; }
+      .tiny-stat span { font-size: 0.74rem; }
+      .tiny-stat strong { font-size: 0.86rem; }
+      .controls { grid-template-columns: 1fr; }
+      .hero { min-height: auto; gap: 12px; }
+      .title-lockup { gap: 10px; }
+      .hero-logo { width: 36px; height: 36px; border-radius: 12px; }
+      h1 { font-size: 1.95rem; line-height: 1; }
+      select, .status-chip { min-height: 42px; border-radius: 14px; font-size: 0.82rem; }
+      .kpis { grid-template-columns: 1fr; }
+      .kpi { min-height: 104px; padding: 14px; border-radius: 16px; }
+      .kpi span { font-size: 0.7rem; }
+      .kpi strong { font-size: 2rem; }
+      .kpi small { font-size: 0.78rem; }
+      .panel-title { margin-bottom: 10px; align-items: flex-start; }
+      .panel-title .search-panel { margin-left: 0; margin-right: 0; }
+      h2 { font-size: 0.95rem; }
+      .entry { grid-template-columns: 50px 98px minmax(0, 1fr); }
+      .timeline { max-height: 560px; gap: 2px; }
+      .entry { min-height: 38px; padding: 3px 7px; border-radius: 9px; gap: 7px; }
+      .entry.header { min-height: 30px; font-size: 0.66rem; }
+      .entry-input { min-height: 30px; font-size: 0.82rem; }
+      .hour-step { width: 24px; height: 24px; border-radius: 8px; font-size: 0.86rem; }
+      .hours-stepper { grid-template-columns: 24px minmax(0, 1fr) 24px; min-height: 30px; }
+      .hour-value { font-size: 0.86rem; }
+      .activity-tag { min-height: 24px; padding: 0 7px; font-size: 0.76rem; }
+      .tag-remove { width: 16px; height: 16px; }
+      .tag-add { min-width: 28px; min-height: 28px; border-radius: 9px; font-size: 0.86rem; }
+      .tag-input { min-width: 100%; }
+      .search-panel { width: 100%; min-height: 34px; padding: 0 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar glass">
+      <div class="brand">
+        <p class="eyebrow">Iury / VICI</p>
+        <button class="current-month-btn" id="currentMonthBtn" type="button">Mês atual</button>
+      </div>
+      <nav class="nav" id="monthNav" aria-label="Meses"></nav>
+      <div class="sidebar-metric">
+        <div class="tiny-stat"><span>Total registrado</span><strong id="sideTotal">0h</strong></div>
+        <div class="tiny-stat"><span>Dias lançados</span><strong id="sideDays">0</strong></div>
+        <div class="tiny-stat"><span>Saldo final</span><strong id="sideBalance">0h</strong></div>
+      </div>
+    </aside>
+
+    <main>
+      <section class="hero glass">
+        <div class="title-lockup">
+          <span class="hero-logo" aria-hidden="true">
+            <img src="./vici_favicon.png" alt="">
+          </span>
+          <h1>controle de horas</h1>
+        </div>
+        <div class="controls">
+          <div class="select-shell">
+            <select id="monthSelect"></select>
+          </div>
+          <div class="status-chip" id="statusChip">Carregando</div>
+        </div>
+      </section>
+
+      <section class="kpis" aria-label="Indicadores do mês">
+        <article class="kpi"><span>Horas realizadas</span><strong id="kpiHours">0h</strong><small id="kpiHoursNote">total do mês</small></article>
+        <article class="kpi"><span>Meta ajustada</span><strong id="kpiTarget">0h</strong><small>80h + saldo anterior</small></article>
+        <article class="kpi"><span>Saldo final</span><strong id="kpiBalance">0h</strong><small id="kpiBalanceNote">impacta o próximo mês</small></article>
+        <article class="kpi"><span>Cumprimento</span><strong id="kpiCompletion">0%</strong><small id="kpiCompletionNote">progresso sobre a meta ajustada</small></article>
+      </section>
+
+      <section class="grid">
+        <article class="panel glass">
+          <div class="panel-title">
+            <h2>Tarefas do mês</h2>
+            <div class="search-panel">
+              <input class="entry-input" id="activitySearch" type="search" placeholder="Buscar">
+            </div>
+          </div>
+          <div class="search-results" id="activitySearchResults"></div>
+          <div class="timeline" id="timeline"></div>
+        </article>
+
+      </section>
+
+      <section class="heavy-day glass">
+        <div class="panel-title">
+          <h2>Dia mais pesado</h2>
+        </div>
+        <div class="entry" id="maxDayCard"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "hours-dashboard-edits-v4";
+    const CLOUD_ENDPOINT = "https://script.google.com/macros/s/AKfycbyh3qFaOkBzxyDra03EsYdZC6onZOn7L1HKUe9oh_ObZ9QjmYi-ZxyBhy1NeVH0HmUf/exec";
+    const data = loadData();
+    const months = data.months;
+    const MONTH_NAMES = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"];
+    const MONTH_NUMBERS = { "MARÇO": 3, "ABRIL": 4, "MAIO": 5, "JUNHO": 6, "JULHO": 7, "AGOSTO": 8, "SETEMBRO": 9, "OUTUBRO": 10, "NOVEMBRO": 11, "DEZEMBRO": 12 };
+    const YEAR = 2026;
+    let cloudSaveTimer = null;
+    let selectedIndex = getCurrentMonthIndex();
+
+    const fmtHours = (value) => value === null || value === undefined ? "—" : `${Number(value || 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}h`;
+    const fmtPct = (value) => `${Math.round((value || 0) * 100)}%`;
+    const fmtBalance = (value) => {
+      if (value === null || value === undefined) return "—";
+      if (value < 0) return `+${fmtHours(Math.abs(value))}`;
+      return fmtHours(value);
+    };
+
+    function balanceClass(value) {
+      if (value < 0) return "positive";
+      if (value > 0) return "negative";
+      return "";
+    }
+
+    function statusText(month) {
+      if (!month.isActive) return "Mês sem lançamentos reais";
+      if (month.balance < 0) return `Horas a mais: ${fmtHours(Math.abs(month.balance))}`;
+      if (month.balance > 0) return `Faltam: ${fmtHours(month.balance)}`;
+      return "Meta fechada";
+    }
+
+    function getCurrentMonthIndex() {
+      const currentMonthName = MONTH_NAMES[new Date().getMonth()];
+      const index = months.findIndex((month) => month.name === currentMonthName);
+      return index >= 0 ? index : 0;
+    }
+
+    function statusClass(month) {
+      if (!month.isActive || month.balance === 0) return "";
+      return month.balance < 0 ? "positive" : "negative";
+    }
+
+    function loadData() {
+      const base = JSON.parse(JSON.stringify(window.HOURS_DASHBOARD_DATA));
+      normalizeAllEntries(base);
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        if (!saved || !Array.isArray(saved.months)) return base;
+        saved.months.forEach((savedMonth) => {
+          const month = base.months.find((item) => item.name === savedMonth.name);
+          if (month && Array.isArray(savedMonth.entries)) {
+            month.entries = savedMonth.entries;
+          }
+        });
+      } catch (error) {
+        return base;
+      }
+      normalizeAllEntries(base);
+      recalculateAll(base);
+      return base;
+    }
+
+    function normalizeAllEntries(targetData = data) {
+      targetData.months.forEach((month) => {
+        month.entries.forEach(normalizeEntryTags);
+      });
+    }
+
+    function normalizeEntryTags(entry) {
+      if (!Array.isArray(entry.tags)) {
+        entry.tags = String(entry.task || "")
+          .split("/")
+          .map((tag) => tag.trim())
+          .filter(Boolean);
+      }
+      entry.task = entry.tags.join(" / ");
+      return entry;
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        months: months.map((month) => ({
+          name: month.name,
+          entries: month.entries,
+        })),
+      }));
+      queueCloudSave();
+    }
+
+    function serializeData() {
+      recalculateAll();
+      return {
+        generatedAt: data.generatedAt,
+        client: data.client,
+        owner: data.owner,
+        monthlyTarget: data.monthlyTarget,
+        totals: data.totals,
+        months: months.map((month) => ({
+          name: month.name,
+          target: month.target,
+          previousBalance: month.previousBalance,
+          adjustedTarget: month.adjustedTarget,
+          totalHours: month.totalHours,
+          balance: month.balance,
+          completion: month.completion,
+          workedDays: month.workedDays,
+          avgPerWorkedDay: month.avgPerWorkedDay,
+          taskDays: month.taskDays,
+          entries: month.entries.map((entry) => ({
+            day: entry.day,
+            dayNumber: entry.dayNumber,
+            hours: Number(entry.hours || 0),
+            task: activityText(entry),
+            tags: Array.isArray(entry.tags) ? entry.tags : [],
+          })),
+        })),
+      };
+    }
+
+    function queueCloudSave() {
+      window.clearTimeout(cloudSaveTimer);
+      cloudSaveTimer = window.setTimeout(saveCloudData, 450);
+    }
+
+    function saveCloudData() {
+      if (!CLOUD_ENDPOINT) return;
+      const payload = JSON.stringify({ action: "write", data: serializeData() });
+      fetch(CLOUD_ENDPOINT, {
+        method: "POST",
+        mode: "no-cors",
+        body: payload,
+      }).catch((error) => {
+        console.warn("Não foi possível salvar no Google Sheets agora.", error);
+      });
+    }
+
+    function loadCloudData() {
+      if (!CLOUD_ENDPOINT) return Promise.resolve(null);
+      return new Promise((resolve, reject) => {
+        const callbackName = `hoursDashboardCloud_${Date.now()}_${Math.round(Math.random() * 100000)}`;
+        const script = document.createElement("script");
+        const cleanup = () => {
+          delete window[callbackName];
+          script.remove();
+        };
+
+        window[callbackName] = (response) => {
+          cleanup();
+          resolve(response && response.data ? response.data : response);
+        };
+
+        script.src = `${CLOUD_ENDPOINT}?action=read&callback=${encodeURIComponent(callbackName)}&t=${Date.now()}`;
+        script.onerror = () => {
+          cleanup();
+          reject(new Error("Falha ao carregar dados online."));
+        };
+        document.body.appendChild(script);
+      });
+    }
+
+    function applyCloudData(remoteData) {
+      if (!remoteData || !Array.isArray(remoteData.months)) return false;
+      remoteData.months.forEach((remoteMonth) => {
+        const month = months.find((item) => item.name === remoteMonth.name);
+        if (month && Array.isArray(remoteMonth.entries)) {
+          month.entries = remoteMonth.entries;
+        }
+      });
+      normalizeAllEntries();
+      recalculateAll();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        months: months.map((month) => ({
+          name: month.name,
+          entries: month.entries,
+        })),
+      }));
+      return true;
+    }
+
+    function isExcludedTask(task) {
+      return ["feriado", "viagem", "off"].includes(String(task || "").trim().toLowerCase());
+    }
+
+    function isActiveMonth(month) {
+      return month.entries.length > 0;
+    }
+
+    function recalculateAll(targetData = data) {
+      let runningBalance = 0;
+      const activeMonths = [];
+
+      targetData.months.forEach((month) => {
+        const total = month.entries.reduce((sum, entry) => sum + Number(entry.hours || 0), 0);
+        const worked = month.entries.filter((entry) => Number(entry.hours || 0) > 0);
+        const active = isActiveMonth(month);
+        const previousBalance = active ? runningBalance : null;
+        const adjustedTarget = active ? 80 + previousBalance : null;
+        const balance = active ? adjustedTarget - total : null;
+
+        month.isActive = active;
+        month.totalHours = Number(total.toFixed(2));
+        month.previousBalance = previousBalance === null ? null : Number(previousBalance.toFixed(2));
+        month.adjustedTarget = adjustedTarget === null ? null : Number(adjustedTarget.toFixed(2));
+        month.balance = balance === null ? null : Number(balance.toFixed(2));
+        month.completion = active && adjustedTarget ? Number((total / adjustedTarget).toFixed(4)) : 0;
+        month.workedDays = worked.length;
+        month.avgPerWorkedDay = worked.length ? Number((total / worked.length).toFixed(2)) : 0;
+        month.entries.forEach(normalizeEntryTags);
+        month.taskDays = month.entries.filter((entry) => entry.tags.length).length;
+        month.maxDay = month.entries.reduce((max, entry) => Number(entry.hours || 0) > Number(max.hours || 0) ? entry : max, month.entries[0] || null);
+
+        if (active) {
+          runningBalance = month.balance;
+          activeMonths.push(month);
+        }
+      });
+
+      targetData.totals.months = activeMonths.length;
+      targetData.totals.totalHours = Number(activeMonths.reduce((sum, month) => sum + month.totalHours, 0).toFixed(2));
+      targetData.totals.targetHours = 80 * activeMonths.length;
+      targetData.totals.workedDays = activeMonths.reduce((sum, month) => sum + month.workedDays, 0);
+      targetData.totals.taskDays = activeMonths.reduce((sum, month) => sum + month.taskDays, 0);
+      targetData.totals.finalBalance = activeMonths.length ? activeMonths[activeMonths.length - 1].balance : 0;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function activityText(entry) {
+      normalizeEntryTags(entry);
+      return entry.tags.join(" / ");
+    }
+
+    function dayToDateValue(monthName, day) {
+      const monthNumber = MONTH_NUMBERS[monthName] || 1;
+      const match = String(day || "").match(/\d+/);
+      const dayNumber = match ? Number(match[0]) : 1;
+      return `${YEAR}-${String(monthNumber).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
+    }
+
+    function dateValueToDay(value) {
+      const day = Number(String(value || "").split("-")[2]);
+      return Number.isFinite(day) && day > 0 ? String(day) : "";
+    }
+
+    function fmtHourValue(value) {
+      return Number(value || 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+    }
+
+    function initControls() {
+      const nav = document.getElementById("monthNav");
+      const select = document.getElementById("monthSelect");
+      nav.innerHTML = "";
+      select.innerHTML = "";
+      months.forEach((month, index) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "month-btn";
+        btn.innerHTML = `<strong>${month.name}</strong><span class="month-pill">${month.isActive ? fmtHours(month.totalHours) : "—"}</span>`;
+        btn.addEventListener("click", () => selectMonth(index));
+        nav.appendChild(btn);
+
+        const option = document.createElement("option");
+        option.value = index;
+        option.textContent = month.name;
+        select.appendChild(option);
+      });
+      select.addEventListener("change", (event) => selectMonth(Number(event.target.value)));
+      document.getElementById("currentMonthBtn").addEventListener("click", () => selectMonth(getCurrentMonthIndex()));
+      document.getElementById("activitySearch").addEventListener("input", renderSearchResults);
+    }
+
+    function selectMonth(index) {
+      selectedIndex = index;
+      render();
+    }
+
+    function render() {
+      const month = months[selectedIndex];
+      document.getElementById("monthSelect").value = selectedIndex;
+      document.querySelectorAll(".month-btn").forEach((btn, index) => btn.classList.toggle("is-active", index === selectedIndex));
+      document.querySelectorAll(".month-btn").forEach((btn, index) => {
+        const pill = btn.querySelector(".month-pill");
+        if (pill) pill.textContent = months[index].isActive ? fmtHours(months[index].totalHours) : "—";
+      });
+
+      const statusChip = document.getElementById("statusChip");
+      statusChip.textContent = statusText(month);
+      statusChip.className = `status-chip ${statusClass(month)}`;
+      document.getElementById("kpiHours").textContent = fmtHours(month.totalHours);
+      document.getElementById("kpiTarget").textContent = fmtHours(month.adjustedTarget);
+      document.getElementById("kpiBalance").textContent = fmtBalance(month.balance);
+      document.getElementById("kpiBalance").className = balanceClass(month.balance);
+      document.getElementById("kpiCompletion").textContent = fmtPct(month.completion);
+      document.getElementById("kpiHoursNote").textContent = `${month.workedDays} dias com horas | média ${fmtHours(month.avgPerWorkedDay)}`;
+      document.getElementById("kpiBalanceNote").textContent = month.balance < 0 ? "crédito para o próximo mês" : "saldo a cumprir no próximo mês";
+      document.getElementById("kpiCompletionNote").textContent = `${fmtHours(month.previousBalance)} de saldo anterior`;
+      if (!month.isActive) {
+        document.getElementById("kpiHoursNote").textContent = "sem trabalho real registrado";
+        document.getElementById("kpiBalanceNote").textContent = "não entra no acumulado";
+        document.getElementById("kpiCompletionNote").textContent = "aguardando lançamento";
+      }
+
+      document.getElementById("sideTotal").textContent = fmtHours(data.totals.totalHours);
+      document.getElementById("sideDays").textContent = data.totals.workedDays;
+      document.getElementById("sideBalance").textContent = fmtBalance(data.totals.finalBalance);
+
+      renderTimeline(month);
+      renderSearchResults();
+    }
+
+    function renderTimeline(month) {
+      const timeline = document.getElementById("timeline");
+      const entries = month.entries;
+      timeline.innerHTML = `
+        <div class="entry header">
+          <div>DIA</div>
+          <div>HORAS</div>
+          <div>ATIVIDADE</div>
+        </div>
+      ` + entries.map((entry, index) => `
+        <div class="entry">
+          <div class="day-picker">
+            <span>${escapeHtml(entry.day)}</span>
+            <input class="day-date-input" data-index="${index}" data-field="day" type="date" value="${dayToDateValue(month.name, entry.day)}" aria-label="Dia">
+          </div>
+          <div class="hours-stepper" data-index="${index}">
+            <button class="hour-step" type="button" data-index="${index}" data-direction="-1" aria-label="Diminuir horas">−</button>
+            <div class="hour-value">${fmtHourValue(entry.hours)}</div>
+            <button class="hour-step" type="button" data-index="${index}" data-direction="1" aria-label="Aumentar horas">+</button>
+          </div>
+          <div class="tag-editor" data-index="${index}">
+            ${entry.tags.map((tag, tagIndex) => `
+              <span class="activity-tag">${escapeHtml(tag)}<button class="tag-remove" type="button" data-index="${index}" data-tag-index="${tagIndex}" aria-label="Remover ${escapeHtml(tag)}">×</button></span>
+            `).join("")}
+            <input class="entry-input tag-input" data-index="${index}" placeholder="" aria-label="Adicionar atividade">
+            <button class="tag-add" type="button" data-index="${index}" aria-label="Adicionar atividade">+</button>
+          </div>
+        </div>
+      `).join("");
+      timeline.querySelectorAll(".day-date-input").forEach((input) => {
+        input.addEventListener("change", handleEntryEdit);
+      });
+      timeline.querySelectorAll(".hour-step").forEach((button) => {
+        button.addEventListener("click", handleHourStep);
+      });
+      timeline.querySelectorAll(".tag-input").forEach((input) => {
+        input.addEventListener("keydown", handleTagKeydown);
+      });
+      timeline.querySelectorAll(".tag-add").forEach((button) => {
+        button.addEventListener("click", handleTagAdd);
+      });
+      timeline.querySelectorAll(".tag-remove").forEach((button) => {
+        button.addEventListener("click", handleTagRemove);
+      });
+      enableRowByRowScroll(timeline);
+
+      const max = month.maxDay || { day: "-", hours: 0, task: "" };
+      document.getElementById("maxDayCard").innerHTML = `
+        <div class="entry-day">${max.day}</div>
+        <div class="entry-hours">${fmtHours(max.hours)}</div>
+        <div class="entry-task ${activityText(max) ? "" : "is-empty"}">${activityText(max) || "Sem descrição registrada"}</div>
+      `;
+    }
+
+    function enableRowByRowScroll(timeline) {
+      if (timeline.dataset.rowScroll === "on") return;
+      timeline.dataset.rowScroll = "on";
+      timeline.addEventListener("wheel", (event) => {
+        if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+        const firstRow = timeline.querySelector(".entry:not(.header)");
+        if (!firstRow) return;
+        const rowHeight = firstRow.getBoundingClientRect().height;
+        const gap = parseFloat(getComputedStyle(timeline).rowGap || getComputedStyle(timeline).gap) || 0;
+        const step = rowHeight + gap;
+        const direction = event.deltaY > 0 ? 1 : -1;
+        event.preventDefault();
+        timeline.scrollBy({ top: direction * step, behavior: "smooth" });
+      }, { passive: false });
+    }
+
+    function handleEntryEdit(event) {
+      const input = event.currentTarget;
+      const month = months[selectedIndex];
+      const entry = month.entries[Number(input.dataset.index)];
+      const field = input.dataset.field;
+      if (!entry) return;
+
+      if (field === "hours") {
+        entry.hours = Math.max(0, Number(input.value || 0));
+      } else if (field === "day") {
+        entry.day = dateValueToDay(input.value);
+        entry.dayNumber = Number(entry.day) || null;
+      } else {
+        entry[field] = input.value;
+      }
+
+      recalculateAll();
+      saveData();
+      render();
+    }
+
+    function handleHourStep(event) {
+      const button = event.currentTarget;
+      const month = months[selectedIndex];
+      const entry = month.entries[Number(button.dataset.index)];
+      if (!entry) return;
+      const direction = Number(button.dataset.direction || 0);
+      entry.hours = Math.max(0, Number((Number(entry.hours || 0) + direction * 0.5).toFixed(1)));
+      recalculateAll();
+      saveData();
+      render();
+    }
+
+    function commitTag(index, value) {
+      const tag = String(value || "").trim();
+      if (!tag) return;
+      const entry = months[selectedIndex].entries[index];
+      if (!entry) return;
+      normalizeEntryTags(entry);
+      entry.tags.push(tag);
+      entry.task = entry.tags.join(" / ");
+      recalculateAll();
+      saveData();
+      render();
+    }
+
+    function handleTagKeydown(event) {
+      if (event.key !== "Tab" && event.key !== "Enter") return;
+      event.preventDefault();
+      commitTag(Number(event.currentTarget.dataset.index), event.currentTarget.value);
+    }
+
+    function handleTagAdd(event) {
+      const index = Number(event.currentTarget.dataset.index);
+      const input = document.querySelector(`.tag-input[data-index="${index}"]`);
+      commitTag(index, input ? input.value : "");
+    }
+
+    function handleTagRemove(event) {
+      const index = Number(event.currentTarget.dataset.index);
+      const tagIndex = Number(event.currentTarget.dataset.tagIndex);
+      const entry = months[selectedIndex].entries[index];
+      if (!entry) return;
+      normalizeEntryTags(entry);
+      entry.tags.splice(tagIndex, 1);
+      entry.task = entry.tags.join(" / ");
+      recalculateAll();
+      saveData();
+      render();
+    }
+
+    function renderSearchResults() {
+      const input = document.getElementById("activitySearch");
+      const results = document.getElementById("activitySearchResults");
+      if (!input || !results) return;
+      const query = input.value.trim().toLowerCase();
+      if (!query) {
+        results.innerHTML = "";
+        return;
+      }
+
+      const matches = [];
+      months.forEach((month) => {
+        month.entries.forEach((entry) => {
+          normalizeEntryTags(entry);
+          entry.tags.forEach((tag) => {
+            if (tag.toLowerCase().includes(query)) {
+              matches.push({ month: month.name, day: entry.day, hours: entry.hours, tag });
+            }
+          });
+        });
+      });
+
+      results.innerHTML = matches.length
+        ? matches.slice(0, 24).map((match) => `
+          <span class="search-result"><strong>${match.month} ${escapeHtml(match.day)}</strong>${escapeHtml(match.tag)} · ${fmtHours(match.hours)}</span>
+        `).join("")
+        : "";
+    }
+
+    function setupCanvas(canvas) {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.max(1, Math.round(rect.width * dpr));
+      canvas.height = Math.max(1, Math.round(rect.height * dpr));
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx, width: rect.width, height: rect.height };
+    }
+
+    function drawRoundRect(ctx, x, y, w, h, r) {
+      const radius = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + w - radius, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+      ctx.lineTo(x + w, y + h - radius);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+      ctx.lineTo(x + radius, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    initControls();
+    render();
+    loadCloudData()
+      .then((remoteData) => {
+        if (applyCloudData(remoteData)) render();
+      })
+      .catch((error) => {
+        console.warn("Usando dados locais enquanto a base online não responde.", error);
+      });
+    window.addEventListener("resize", render);
+  </script>
+</body>
+</html>
