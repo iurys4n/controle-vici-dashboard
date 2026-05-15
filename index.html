@@ -732,7 +732,22 @@
       text-transform: uppercase;
       letter-spacing: 0.06em;
       font-size: 0.76rem;
+      font-weight: 800;
       border: 1px solid rgba(52,199,89,0.22);
+    }
+
+    .today-label {
+      display: inline-flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .today-label small {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0;
+      opacity: 0.72;
     }
 
     .entry-input:focus {
@@ -1471,7 +1486,7 @@
         return `
         <div class="entry ${isToday ? "is-today" : ""}">
           <div class="day-picker">
-            <span>${isToday ? "Hoje" : escapeHtml(entry.day)}</span>
+            <span>${isToday ? `<span class="today-label">Hoje <small>${escapeHtml(entry.day)}</small></span>` : escapeHtml(entry.day)}</span>
             <input class="day-date-input" data-index="${index}" data-field="day" type="date" value="${dayToDateValue(month.name, entry.day)}" aria-label="Dia">
           </div>
           <div class="hours-stepper" data-index="${index}">
