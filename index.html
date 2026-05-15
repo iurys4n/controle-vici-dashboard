@@ -498,11 +498,9 @@
       min-height: 0;
       max-height: none;
       overflow: auto;
-      padding: 0 4px 46px 0;
-      scroll-snap-type: y mandatory;
-      scroll-padding: 38px 0 46px;
-      scroll-behavior: smooth;
-      overscroll-behavior: contain;
+      padding: 0 4px 12px 0;
+      scroll-behavior: auto;
+      overscroll-behavior: auto;
       scrollbar-gutter: stable;
     }
 
@@ -516,8 +514,14 @@
       border-radius: 11px;
       background: rgba(255,255,255,0.48);
       border: 1px solid rgba(255,255,255,0.5);
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
+    }
+
+    .entry.is-today {
+      margin-bottom: 12px;
+      min-height: 48px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(236,245,255,0.52));
+      border-color: rgba(10,132,255,0.22);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.78), 0 12px 28px rgba(93,113,151,0.1);
     }
 
     .entry:nth-child(even) {
@@ -541,7 +545,6 @@
       text-transform: uppercase;
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
-      scroll-snap-align: none;
     }
 
     .entry-day {
@@ -662,6 +665,14 @@
 
     .entry:nth-child(even) .day-picker {
       background: rgba(10,132,255,0.12);
+    }
+
+    .entry.is-today .day-picker {
+      background: rgba(10,132,255,0.18);
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.76rem;
     }
 
     .entry-input:focus {
@@ -979,7 +990,7 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "hours-dashboard-edits-v4";
+    const STORAGE_KEY = "hours-dashboard-edits-v5";
     const CLOUD_ENDPOINT = "https://script.google.com/macros/s/AKfycbyh3qFaOkBzxyDra03EsYdZC6onZOn7L1HKUe9oh_ObZ9QjmYi-ZxyBhy1NeVH0HmUf/exec";
     const data = loadData();
     const months = data.months;
@@ -1224,6 +1235,13 @@
       return `${YEAR}-${String(monthNumber).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
     }
 
+    function todayDayNumberForMonth(monthName) {
+      const today = new Date();
+      if (today.getFullYear() !== YEAR) return null;
+      const currentMonthName = MONTH_NAMES[today.getMonth()];
+      return currentMonthName === monthName ? today.getDate() : null;
+    }
+
     function dateValueToDay(value) {
       const day = Number(String(value || "").split("-")[2]);
       return Number.isFinite(day) && day > 0 ? String(day) : "";
@@ -1297,17 +1315,24 @@
 
     function renderTimeline(month) {
       const timeline = document.getElementById("timeline");
-      const entries = month.entries;
+      const todayDayNumber = todayDayNumberForMonth(month.name);
+      const entries = month.entries.map((entry, index) => ({ entry, index }));
+      const todayEntryIndex = entries.findIndex(({ entry }) => Number(entry.dayNumber) === todayDayNumber);
+      const displayEntries = todayEntryIndex >= 0
+        ? [entries[todayEntryIndex], ...entries.filter((_, index) => index !== todayEntryIndex)]
+        : entries;
       timeline.innerHTML = `
         <div class="entry header">
           <div>DIA</div>
           <div>HORAS</div>
           <div>ATIVIDADE</div>
         </div>
-      ` + entries.map((entry, index) => `
-        <div class="entry">
+      ` + displayEntries.map(({ entry, index }) => {
+        const isToday = Number(entry.dayNumber) === todayDayNumber;
+        return `
+        <div class="entry ${isToday ? "is-today" : ""}">
           <div class="day-picker">
-            <span>${escapeHtml(entry.day)}</span>
+            <span>${isToday ? "Hoje" : escapeHtml(entry.day)}</span>
             <input class="day-date-input" data-index="${index}" data-field="day" type="date" value="${dayToDateValue(month.name, entry.day)}" aria-label="Dia">
           </div>
           <div class="hours-stepper" data-index="${index}">
@@ -1323,7 +1348,8 @@
             <button class="tag-add" type="button" data-index="${index}" aria-label="Adicionar atividade">+</button>
           </div>
         </div>
-      `).join("");
+      `;
+      }).join("");
       timeline.querySelectorAll(".day-date-input").forEach((input) => {
         input.addEventListener("change", handleEntryEdit);
       });
@@ -1339,7 +1365,6 @@
       timeline.querySelectorAll(".tag-remove").forEach((button) => {
         button.addEventListener("click", handleTagRemove);
       });
-      enableRowByRowScroll(timeline);
 
       const max = month.maxDay || { day: "-", hours: 0, task: "" };
       document.getElementById("maxDayCard").innerHTML = `
@@ -1347,22 +1372,6 @@
         <div class="entry-hours">${fmtHours(max.hours)}</div>
         <div class="entry-task ${activityText(max) ? "" : "is-empty"}">${activityText(max) || "Sem descrição registrada"}</div>
       `;
-    }
-
-    function enableRowByRowScroll(timeline) {
-      if (timeline.dataset.rowScroll === "on") return;
-      timeline.dataset.rowScroll = "on";
-      timeline.addEventListener("wheel", (event) => {
-        if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
-        const firstRow = timeline.querySelector(".entry:not(.header)");
-        if (!firstRow) return;
-        const rowHeight = firstRow.getBoundingClientRect().height;
-        const gap = parseFloat(getComputedStyle(timeline).rowGap || getComputedStyle(timeline).gap) || 0;
-        const step = rowHeight + gap;
-        const direction = event.deltaY > 0 ? 1 : -1;
-        event.preventDefault();
-        timeline.scrollBy({ top: direction * step, behavior: "smooth" });
-      }, { passive: false });
     }
 
     function handleEntryEdit(event) {
