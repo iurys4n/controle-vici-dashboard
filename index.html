@@ -1064,6 +1064,7 @@
   <script>
     const STORAGE_KEY = "hours-dashboard-edits-v5";
     const MIGRATION_KEY = "hours-dashboard-fill-4h-v1";
+    const ZERO_ABSENCE_KEY = "hours-dashboard-zero-absence-v1";
     const CLOUD_ENDPOINT = "https://script.google.com/macros/s/AKfycbyh3qFaOkBzxyDra03EsYdZC6onZOn7L1HKUe9oh_ObZ9QjmYi-ZxyBhy1NeVH0HmUf/exec";
     const data = loadData();
     const months = data.months;
@@ -1152,6 +1153,24 @@
           normalizeEntryTags(entry);
           if (Number(entry.hours || 0) === 0 && !isExcludedTask(activityText(entry))) {
             entry.hours = 4;
+            changed = true;
+          }
+        });
+      });
+      if (changed) {
+        normalizeAllEntries(targetData);
+        recalculateAll(targetData);
+      }
+      return changed;
+    }
+
+    function zeroAbsenceHours(targetData = data) {
+      let changed = false;
+      targetData.months.forEach((month) => {
+        month.entries.forEach((entry) => {
+          normalizeEntryTags(entry);
+          if (isZeroHourAbsence(activityText(entry)) && Number(entry.hours || 0) !== 0) {
+            entry.hours = 0;
             changed = true;
           }
         });
@@ -1253,7 +1272,9 @@
         }
       });
       normalizeAllEntries();
-      const migrated = localStorage.getItem(MIGRATION_KEY) !== "done" && fillFutureZeroHours();
+      const filledFuture = localStorage.getItem(MIGRATION_KEY) !== "done" && fillFutureZeroHours();
+      const zeroedAbsences = localStorage.getItem(ZERO_ABSENCE_KEY) !== "done" && zeroAbsenceHours();
+      const migrated = filledFuture || zeroedAbsences;
       recalculateAll();
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         months: months.map((month) => ({
@@ -1263,13 +1284,18 @@
       }));
       if (migrated) {
         localStorage.setItem(MIGRATION_KEY, "done");
+        localStorage.setItem(ZERO_ABSENCE_KEY, "done");
         queueCloudSave();
       }
       return true;
     }
 
     function isExcludedTask(task) {
-      return ["feriado", "viagem", "off"].includes(String(task || "").trim().toLowerCase());
+      return isZeroHourAbsence(task);
+    }
+
+    function isZeroHourAbsence(task) {
+      return ["viagem", "ferias", "férias", "off"].includes(String(task || "").trim().toLowerCase());
     }
 
     function isActiveMonth(month) {
