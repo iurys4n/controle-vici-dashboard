@@ -1521,7 +1521,7 @@
 
     function isPendingEntry(entry) {
       normalizeEntryTags(entry);
-      return Number(entry.hours || 0) === 0 || entry.tags.length === 0;
+      return entry.tags.length === 0;
     }
 
     function collectTagSuggestions() {
@@ -1601,8 +1601,7 @@
     }
 
     function buildMonthlyReport(month) {
-      const topActivities = getTopActivities(month);
-      const generatedAt = new Date().toLocaleDateString("pt-BR");
+      const topActivities = getTopActivities(month).slice(0, 2);
       const balanceLabel = month.balance < 0 ? "Saldo positivo" : month.balance > 0 ? "Pendente" : "Fechado";
       const balanceText = month.balance < 0 ? `+${fmtHours(Math.abs(month.balance))}` : fmtHours(month.balance);
       return `<!doctype html>
@@ -1611,84 +1610,84 @@
   <meta charset="utf-8">
   <title>Controle de horas | Iury ${month.name}</title>
   <style>
-    @page { size: A4; margin: 14mm; }
+    @page { size: A4; margin: 8mm; }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
       color: #182033;
-      background: #eef4fb;
+      background: #f3f7fb;
     }
     .page {
       min-height: 100vh;
-      padding: 26px;
+      padding: 14px;
       background:
         radial-gradient(circle at 10% 0%, rgba(10,132,255,0.12), transparent 30%),
         radial-gradient(circle at 90% 8%, rgba(52,199,89,0.1), transparent 26%),
         linear-gradient(180deg, #f8fbff 0%, #edf4fb 100%);
     }
-    .hero, .card, .table-wrap {
+    .hero, .card, .activity, .table-wrap {
       background: rgba(255,255,255,0.76);
       border: 1px solid rgba(255,255,255,0.86);
-      border-radius: 24px;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 18px 48px rgba(70,96,128,0.12);
+      border-radius: 16px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 10px 28px rgba(70,96,128,0.1);
     }
     .hero {
       display: flex;
       justify-content: space-between;
-      gap: 24px;
-      padding: 26px;
-      margin-bottom: 16px;
+      gap: 16px;
+      padding: 16px 18px;
+      margin-bottom: 10px;
     }
     .eyebrow {
-      margin: 0 0 10px;
+      margin: 0 0 6px;
       color: #788291;
-      font-size: 11px;
+      font-size: 9px;
       font-weight: 800;
       letter-spacing: 0.22em;
       text-transform: uppercase;
     }
     h1 {
       margin: 0;
-      font-size: 40px;
+      font-size: 27px;
       line-height: 0.98;
       letter-spacing: 0;
     }
     .meta {
       text-align: right;
       color: #788291;
-      font-size: 13px;
-      line-height: 1.5;
+      font-size: 10px;
+      line-height: 1.35;
     }
     .kpis {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      margin-bottom: 16px;
+      gap: 8px;
+      margin-bottom: 10px;
     }
     .card {
-      min-height: 116px;
-      padding: 18px;
+      min-height: 70px;
+      padding: 10px 12px;
       display: grid;
       align-content: space-between;
     }
     .card span {
       color: #788291;
-      font-size: 11px;
+      font-size: 8px;
       font-weight: 800;
       letter-spacing: 0.12em;
       text-transform: uppercase;
     }
     .card strong {
-      font-size: 30px;
+      font-size: 21px;
       line-height: 1;
     }
     .card small {
       color: #788291;
-      font-size: 12px;
+      font-size: 9px;
     }
     .section {
-      margin: 20px 0 10px;
+      margin: 10px 0 6px;
       display: flex;
       justify-content: space-between;
       align-items: end;
@@ -1696,28 +1695,20 @@
     }
     h2 {
       margin: 0;
-      font-size: 18px;
-    }
-    .section p {
-      margin: 4px 0 0;
-      color: #788291;
-      font-size: 12px;
+      font-size: 13px;
     }
     .activity-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-bottom: 16px;
+      gap: 8px;
+      margin-bottom: 10px;
     }
     .activity {
-      padding: 12px 14px;
-      border-radius: 16px;
-      background: rgba(255,255,255,0.68);
-      border: 1px solid rgba(10,132,255,0.1);
+      padding: 9px 11px;
       display: flex;
       justify-content: space-between;
       gap: 12px;
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 700;
     }
     .activity strong {
@@ -1725,45 +1716,40 @@
       white-space: nowrap;
     }
     .table-wrap {
-      padding: 10px;
+      padding: 6px;
       overflow: hidden;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 11px;
+      font-size: 8.7px;
+      line-height: 1.2;
     }
     th {
       color: #788291;
-      font-size: 10px;
+      font-size: 7.5px;
       letter-spacing: 0.14em;
       text-transform: uppercase;
       text-align: left;
-      padding: 10px;
+      padding: 5px 7px;
     }
     td {
-      padding: 10px;
+      padding: 4px 7px;
       border-top: 1px solid rgba(20,32,48,0.06);
       vertical-align: top;
     }
     td:nth-child(1), td:nth-child(2) {
-      width: 70px;
+      width: 48px;
       font-weight: 800;
       color: #0a84ff;
     }
     tr:nth-child(even) td {
       background: rgba(236,245,255,0.45);
     }
-    .footer {
-      margin-top: 14px;
-      color: #788291;
-      font-size: 11px;
-      text-align: right;
-    }
     @media print {
       body { background: white; }
       .page { min-height: auto; padding: 0; background: white; }
-      .hero, .card, .table-wrap { box-shadow: none; }
+      .hero, .card, .activity, .table-wrap { box-shadow: none; }
     }
   </style>
 </head>
@@ -1776,7 +1762,6 @@
       </div>
       <div class="meta">
         <strong>Relatório mensal</strong><br>
-        Gerado em ${generatedAt}<br>
         ${month.entries.length} dias lançados
       </div>
     </section>
@@ -1791,7 +1776,6 @@
     <section class="section">
       <div>
         <h2>Principais atividades</h2>
-        <p>Atividades ordenadas pelo tempo estimado dedicado no mês.</p>
       </div>
     </section>
     <div class="activity-grid">
@@ -1803,7 +1787,6 @@
     <section class="section">
       <div>
         <h2>Detalhamento diário</h2>
-        <p>Horas e atividades registradas por dia.</p>
       </div>
     </section>
     <div class="table-wrap">
@@ -1820,7 +1803,6 @@
         </tbody>
       </table>
     </div>
-    <div class="footer">Controle de horas | Iury ${escapeHtml(month.name)}</div>
   </main>
 </body>
 </html>`;
@@ -1839,7 +1821,7 @@
       return Array.from(totals, ([tag, hours]) => ({ tag, hours }))
         .filter((item) => item.hours > 0)
         .sort((a, b) => b.hours - a.hours)
-        .slice(0, 8);
+        .slice(0, 2);
     }
 
     function handleTagRemove(event) {
