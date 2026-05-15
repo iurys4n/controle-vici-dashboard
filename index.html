@@ -222,6 +222,25 @@
       font-weight: 700;
     }
 
+    .panel-heading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .days-pill {
+      min-width: 64px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      text-align: center;
+      background: rgba(10,132,255,0.1);
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
     .sidebar-metric {
       margin-top: auto;
       display: grid;
@@ -668,11 +687,12 @@
     }
 
     .entry.is-today .day-picker {
-      background: rgba(10,132,255,0.18);
-      color: var(--accent);
+      background: rgba(52,199,89,0.16);
+      color: var(--green);
       text-transform: uppercase;
       letter-spacing: 0.06em;
       font-size: 0.76rem;
+      border: 1px solid rgba(52,199,89,0.22);
     }
 
     .entry-input:focus {
@@ -969,7 +989,10 @@
       <section class="grid">
         <article class="panel glass">
           <div class="panel-title">
-            <h2>Tarefas do mês</h2>
+            <div class="panel-heading">
+              <h2>Tarefas do mês</h2>
+              <span class="days-pill" id="monthDaysPill">0 dias</span>
+            </div>
             <div class="search-panel">
               <input class="entry-input" id="activitySearch" type="search" placeholder="Buscar">
             </div>
@@ -1333,6 +1356,7 @@
       document.getElementById("sideTotal").textContent = fmtHours(data.totals.totalHours);
       document.getElementById("sideDays").textContent = data.totals.workedDays;
       document.getElementById("sideBalance").textContent = fmtBalance(data.totals.finalBalance);
+      document.getElementById("monthDaysPill").textContent = `${month.entries.length} dias`;
 
       renderTimeline(month);
       renderSearchResults();
@@ -1434,27 +1458,41 @@
 
     function commitTag(index, value) {
       const tag = String(value || "").trim();
-      if (!tag) return;
+      if (!tag) return false;
       const entry = months[selectedIndex].entries[index];
-      if (!entry) return;
+      if (!entry) return false;
       normalizeEntryTags(entry);
       entry.tags.push(tag);
       entry.task = entry.tags.join(" / ");
       recalculateAll();
       saveData();
-      render();
+      return true;
     }
 
     function handleTagKeydown(event) {
       if (event.key !== "Tab" && event.key !== "Enter") return;
       event.preventDefault();
-      commitTag(Number(event.currentTarget.dataset.index), event.currentTarget.value);
+      const index = Number(event.currentTarget.dataset.index);
+      if (!commitTag(index, event.currentTarget.value)) return;
+      render();
+      focusTagInput(index);
     }
 
     function handleTagAdd(event) {
       const index = Number(event.currentTarget.dataset.index);
       const input = document.querySelector(`.tag-input[data-index="${index}"]`);
-      commitTag(index, input ? input.value : "");
+      if (!commitTag(index, input ? input.value : "")) return;
+      render();
+      focusTagInput(index);
+    }
+
+    function focusTagInput(index) {
+      window.requestAnimationFrame(() => {
+        const input = document.querySelector(`.tag-input[data-index="${index}"]`);
+        if (!input) return;
+        input.focus();
+        input.value = "";
+      });
     }
 
     function handleTagRemove(event) {
