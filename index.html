@@ -1080,7 +1080,50 @@
     const STORAGE_KEY = "hours-dashboard-edits-v5";
     const MIGRATION_KEY = "hours-dashboard-fill-4h-v1";
     const ZERO_ABSENCE_KEY = "hours-dashboard-zero-absence-v1";
+    const GRAMMAR_MIGRATION_KEY = "hours-dashboard-grammar-v1";
     const CLOUD_ENDPOINT = "https://script.google.com/macros/s/AKfycbyh3qFaOkBzxyDra03EsYdZC6onZOn7L1HKUe9oh_ObZ9QjmYi-ZxyBhy1NeVH0HmUf/exec";
+    const TASK_CORRECTIONS = new Map([
+      ["Edição video ISO e inicio de tratamento de fotos Eccelenza 2026", "Edição vídeo ISO e início de tratamento de fotos Eccellenza 2026"],
+      ["Finalização video Fitwell", "Finalização vídeo Fitwell"],
+      ["Continuação diagramação codigo de ética VICI", "Continuação da diagramação código de ética VICI"],
+      ["Finalização codigo de ética", "Finalização do código de ética"],
+      ["Alteração codigo de ética", "Alteração do código de ética"],
+      ["Alteração arte premiaçòes", "Alteração da arte de premiações"],
+      ["Captação e começo de edição acompanhamento Gioppo", "Captação e início da edição do acompanhamento Gioppo"],
+      ["Começo arte mestre", "Início da arte master"],
+      ["Captação corretor Pedro + Barra Blue", "Captação do corretor Pedro + Barra Blue"],
+      ["Alteração.e finalização vídeo Pedro", "Alteração e finalização vídeo Pedro"],
+      ["Foto perfis", "Fotos de perfil"],
+      ["Fotos perfil", "Fotos de perfil"],
+      ["Organização drive", "Organização do Drive"],
+      ["Organização drive comercial", "Organização do Drive comercial"],
+      ["Começo da marca Tropea", "Início da marca Tropea"],
+      ["Finalização arte sacola", "Finalização da arte da sacola"],
+      ["Edição book corretores", "Edição do book de corretores"],
+      ["Ajuste apresentação Tropea", "Ajuste da apresentação Tropea"],
+      ["Arte dia do trabalhador", "Arte Dia do Trabalhador"],
+      ["Arte dia das mães", "Arte Dia das Mães"],
+      ["Arte caixa medicamento", "Arte caixa de medicamento"],
+      ["Drones acompanhamento", "Drones de acompanhamento"],
+      ["Fotos drone Lucas", "Fotos de drone Lucas"],
+      ["Edição e finalização acompanhamento Gioppo", "Edição e finalização do acompanhamento Gioppo"],
+      ["Decupagem acompanhamento Positano", "Decupagem do acompanhamento Positano"],
+      ["Ajustes ilustrações Bobie", "Ajustes nas ilustrações Bobie"],
+      ["Marca tropea e apresentação da marca", "Marca Tropea e apresentação da marca"],
+      ["Analise site Vici", "Análise do site VICI"],
+      ["Finalizaçào video do Lucas", "Finalização vídeo do Lucas"],
+      ["Finalização video do Lucas", "Finalização vídeo do Lucas"],
+      ["Finalização video esgoto Chico", "Finalização do vídeo de esgoto Chico"],
+      ["Captação acompoanhamento Gioppo e Positano", "Captação do acompanhamento Gioppo e Positano"],
+      ["Captação Pedro Transatlantico", "Captação Pedro Transatlântico"],
+      ["Fotos terrenos Lucas", "Fotos dos terrenos Lucas"],
+      ["Tratamento fotos Terreno", "Tratamento de fotos do terreno"],
+      ["Começo da edição Positano", "Início da edição Positano"],
+      ["Finalização livro de colorir", "Finalização do livro de colorir"],
+      ["Reunião apresentação Tropea", "Reunião de apresentação Tropea"],
+      ["4.5", ""],
+      ["off", "Off"],
+    ]);
     const data = loadData();
     const months = data.months;
     const MONTH_NAMES = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"];
@@ -1138,6 +1181,7 @@
         return base;
       }
       normalizeAllEntries(base);
+      applyGrammarCorrections(base);
       recalculateAll(base);
       return base;
     }
@@ -1157,6 +1201,24 @@
       }
       entry.task = entry.tags.join(" / ");
       return entry;
+    }
+
+    function applyGrammarCorrections(targetData = data) {
+      let changed = false;
+      targetData.months.forEach((month) => {
+        month.entries.forEach((entry) => {
+          normalizeEntryTags(entry);
+          const correctedTags = entry.tags
+            .map((tag) => TASK_CORRECTIONS.has(tag) ? TASK_CORRECTIONS.get(tag) : tag)
+            .filter(Boolean);
+          if (correctedTags.join(" / ") !== entry.tags.join(" / ")) {
+            entry.tags = correctedTags;
+            entry.task = correctedTags.join(" / ");
+            changed = true;
+          }
+        });
+      });
+      return changed;
     }
 
     function fillFutureZeroHours(targetData = data) {
@@ -1287,9 +1349,10 @@
         }
       });
       normalizeAllEntries();
+      const grammarChanged = localStorage.getItem(GRAMMAR_MIGRATION_KEY) !== "done" && applyGrammarCorrections();
       const filledFuture = localStorage.getItem(MIGRATION_KEY) !== "done" && fillFutureZeroHours();
       const zeroedAbsences = localStorage.getItem(ZERO_ABSENCE_KEY) !== "done" && zeroAbsenceHours();
-      const migrated = filledFuture || zeroedAbsences;
+      const migrated = grammarChanged || filledFuture || zeroedAbsences;
       recalculateAll();
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         months: months.map((month) => ({
@@ -1298,6 +1361,7 @@
         })),
       }));
       if (migrated) {
+        localStorage.setItem(GRAMMAR_MIGRATION_KEY, "done");
         localStorage.setItem(MIGRATION_KEY, "done");
         localStorage.setItem(ZERO_ABSENCE_KEY, "done");
         queueCloudSave();
