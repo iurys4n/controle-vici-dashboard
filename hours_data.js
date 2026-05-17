@@ -57,18 +57,18 @@ window.HOURS_DASHBOARD_DATA = {
           "day": "5",
           "dayNumber": 5,
           "hours": 4,
-          "task": "Edição video ISO e inicio de tratamento de fotos Eccelenza 2026",
+          "task": "Edição vídeo ISO e início de tratamento de fotos Eccellenza 2026",
           "tags": [
-            "Edição video ISO e inicio de tratamento de fotos Eccelenza 2026"
+            "Edição vídeo ISO e início de tratamento de fotos Eccellenza 2026"
           ]
         },
         {
           "day": "6",
           "dayNumber": 6,
           "hours": 4,
-          "task": "Edição Acompanhamento Positano / Finalização da edição das fotos Eccellenza 2026",
+          "task": "Edição do acompanhamento Positano / Finalização da edição das fotos Eccellenza 2026",
           "tags": [
-            "Edição Acompanhamento Positano",
+            "Edição do acompanhamento Positano",
             "Finalização da edição das fotos Eccellenza 2026"
           ]
         },
@@ -76,9 +76,9 @@ window.HOURS_DASHBOARD_DATA = {
           "day": "9",
           "dayNumber": 9,
           "hours": 6,
-          "task": "Edição book corretores / Edição vídeo Fitwell / Renders verticais Amalfi",
+          "task": "Edição do book de corretores / Edição vídeo Fitwell / Renders verticais Amalfi",
           "tags": [
-            "Edição book corretores",
+            "Edição do book de corretores",
             "Edição vídeo Fitwell",
             "Renders verticais Amalfi"
           ]
@@ -87,9 +87,9 @@ window.HOURS_DASHBOARD_DATA = {
           "day": "10",
           "dayNumber": 10,
           "hours": 5,
-          "task": "Finalização video Fitwell / Finalização vídeo Amalfi Reel",
+          "task": "Finalização vídeo Fitwell / Finalização vídeo Amalfi Reel",
           "tags": [
-            "Finalização video Fitwell",
+            "Finalização vídeo Fitwell",
             "Finalização vídeo Amalfi Reel"
           ]
         },
@@ -97,77 +97,75 @@ window.HOURS_DASHBOARD_DATA = {
           "day": "11",
           "dayNumber": 11,
           "hours": 4,
-          "task": "Arte premiações / Continuação diagramação codigo de ética VICI",
+          "task": "Arte premiações / Continuação da diagramação código de ética VICI",
           "tags": [
             "Arte premiações",
-            "Continuação diagramação codigo de ética VICI"
+            "Continuação da diagramação código de ética VICI"
           ]
         },
         {
           "day": "12",
           "dayNumber": 12,
           "hours": 4.5,
-          "task": "Finalização codigo de ética / Alteração arte premiaçòes / Captação e começo de edição acompanhamento Gioppo",
+          "task": "Finalização do código de ética / Alteração da arte de premiações / Captação e início da edição do acompanhamento Gioppo",
           "tags": [
-            "Finalização codigo de ética",
-            "Alteração arte premiaçòes",
-            "Captação e começo de edição acompanhamento Gioppo"
+            "Finalização do código de ética",
+            "Alteração da arte de premiações",
+            "Captação e início da edição do acompanhamento Gioppo"
           ]
         },
         {
           "day": "13",
           "dayNumber": 13,
           "hours": 4,
-          "task": "Finalização acompanhamento Gioppo e acompanhamentos para YT",
+          "task": "Finalização do acompanhamento Gioppo e acompanhamentos para YT",
           "tags": [
-            "Finalização acompanhamento Gioppo e acompanhamentos para YT"
+            "Finalização do acompanhamento Gioppo e acompanhamentos para YT"
           ]
         },
         {
           "day": "16",
           "dayNumber": 16,
           "hours": 4,
-          "task": "Arte Spazio / Alteração codigo de ética / Começo arte mestre",
+          "task": "Arte Spazio / Alteração do código de ética / Início da arte master",
           "tags": [
             "Arte Spazio",
-            "Alteração codigo de ética",
-            "Começo arte mestre"
+            "Alteração do código de ética",
+            "Início da arte master"
           ]
         },
         {
           "day": "17",
           "dayNumber": 17,
           "hours": 4.5,
-          "task": "Captação corretor Pedro + Barra Blue",
+          "task": "Captação do corretor Pedro + Barra Blue",
           "tags": [
-            "Captação corretor Pedro + Barra Blue"
+            "Captação do corretor Pedro + Barra Blue"
           ]
         },
         {
           "day": "18",
           "dayNumber": 18,
           "hours": 4.5,
-          "task": "4.5",
-          "tags": [
-            "4.5"
-          ]
+          "task": "",
+          "tags": []
         },
         {
           "day": "19",
           "dayNumber": 19,
           "hours": 0,
-          "task": "off",
+          "task": "Off",
           "tags": [
-            "off"
+            "Off"
           ]
         },
         {
           "day": "20",
           "dayNumber": 20,
           "hours": 3,
-          "task": "Alteração.e finalização vídeo Pedro / Edição Barra Blu / Quadro Amalfi",
+          "task": "Alteração e finalização vídeo Pedro / Edição Barra Blu / Quadro Amalfi",
           "tags": [
-            "Alteração.e finalização vídeo Pedro",
+            "Alteração e finalização vídeo Pedro",
             "Edição Barra Blu",
             "Quadro Amalfi"
           ]
@@ -186,9 +184,9 @@ window.HOURS_DASHBOARD_DATA = {
           "day": "24",
           "dayNumber": 24,
           "hours": 4,
-          "task": "Foto perfis / Quadro Centre / Reunião PDI",
+          "task": "Fotos de perfil / Quadro Centre / Reunião PDI",
           "tags": [
-            "Foto perfis",
+            "Fotos de perfil",
             "Quadro Centre",
             "Reunião PDI"
           ]
@@ -197,31 +195,31 @@ window.HOURS_DASHBOARD_DATA = {
           "day": "25",
           "dayNumber": 25,
           "hours": 4,
-          "task": "Papel timbrado / Linktree Comercial / Organização drive comercial",
+          "task": "Papel timbrado / Linktree Comercial / Organização do Drive comercial",
           "tags": [
             "Papel timbrado",
             "Linktree Comercial",
-            "Organização drive comercial"
+            "Organização do Drive comercial"
           ]
         },
         {
           "day": "26",
           "dayNumber": 26,
           "hours": 4,
-          "task": "Começo da marca Tropea / Organização interna / Organização drive",
+          "task": "Início da marca Tropea / Organização interna / Organização do Drive",
           "tags": [
-            "Começo da marca Tropea",
+            "Início da marca Tropea",
             "Organização interna",
-            "Organização drive"
+            "Organização do Drive"
           ]
         },
         {
           "day": "27",
           "dayNumber": 27,
           "hours": 4,
-          "task": "Finalização arte sacola / Perfil Pam / Marca Tropea",
+          "task": "Finalização da arte da sacola / Perfil Pam / Marca Tropea",
           "tags": [
-            "Finalização arte sacola",
+            "Finalização da arte da sacola",
             "Perfil Pam",
             "Marca Tropea"
           ]
@@ -264,13 +262,13 @@ window.HOURS_DASHBOARD_DATA = {
         "day": "18 (sábado)",
         "dayNumber": 18,
         "hours": 8,
-        "task": "Ajuste apresentação Tropea / Arte dia do trabalhador / Arte dia das mães / Finalização Vídeo Amalfi / Arte caixa medicamento / Sensi Alto Padrão / Lucas Barra Velha",
+        "task": "Ajuste apresentação Tropea / Arte Dia do Trabalhador / Arte Dia das Mães / Finalização Vídeo Amalfi / Arte caixa de medicamento / Sensi Alto Padrão / Lucas Barra Velha",
         "tags": [
           "Ajuste apresentação Tropea",
-          "Arte dia do trabalhador",
-          "Arte dia das mães",
+          "Arte Dia do Trabalhador",
+          "Arte Dia das Mães",
           "Finalização Vídeo Amalfi",
-          "Arte caixa medicamento",
+          "Arte caixa de medicamento",
           "Sensi Alto Padrão",
           "Lucas Barra Velha"
         ]
@@ -301,32 +299,32 @@ window.HOURS_DASHBOARD_DATA = {
           "day": "3",
           "dayNumber": 3,
           "hours": 5,
-          "task": "Drones acompanhamento / Captação Chico / Fotos drone Lucas",
+          "task": "Drones de acompanhamento / Captação Chico / Fotos de drone Lucas",
           "tags": [
-            "Drones acompanhamento",
+            "Drones de acompanhamento",
             "Captação Chico",
-            "Fotos drone Lucas"
+            "Fotos de drone Lucas"
           ]
         },
         {
           "day": "6",
           "dayNumber": 6,
           "hours": 4,
-          "task": "Edição e finalização acompanhamento Gioppo / BG Convite Amalfi / Decupagem acompanhamento Positano",
+          "task": "Edição e finalização do acompanhamento Gioppo / BG Convite Amalfi / Decupagem do acompanhamento Positano",
           "tags": [
-            "Edição e finalização acompanhamento Gioppo",
+            "Edição e finalização do acompanhamento Gioppo",
             "BG Convite Amalfi",
-            "Decupagem acompanhamento Positano"
+            "Decupagem do acompanhamento Positano"
           ]
         },
         {
           "day": "7",
           "dayNumber": 7,
           "hours": 3,
-          "task": "Marca Tropea / Ajustes ilustrações Bobie",
+          "task": "Marca Tropea / Ajustes nas ilustrações Bobie",
           "tags": [
             "Marca Tropea",
-            "Ajustes ilustrações Bobie"
+            "Ajustes nas ilustrações Bobie"
           ]
         },
         {
@@ -361,19 +359,19 @@ window.HOURS_DASHBOARD_DATA = {
           "day": "13",
           "dayNumber": 13,
           "hours": 4,
-          "task": "Marca tropea e apresentação da marca",
+          "task": "Marca Tropea e apresentação da marca",
           "tags": [
-            "Marca tropea e apresentação da marca"
+            "Marca Tropea e apresentação da marca"
           ]
         },
         {
           "day": "14",
           "dayNumber": 14,
           "hours": 4,
-          "task": "Apresentação da marca Tropea / Fotos perfil Cris e Lucas / Reunião Lucas IA",
+          "task": "Apresentação da marca Tropea / Fotos de perfil Cris e Lucas / Reunião Lucas IA",
           "tags": [
             "Apresentação da marca Tropea",
-            "Fotos perfil Cris e Lucas",
+            "Fotos de perfil Cris e Lucas",
             "Reunião Lucas IA"
           ]
         },
@@ -381,10 +379,10 @@ window.HOURS_DASHBOARD_DATA = {
           "day": "15",
           "dayNumber": 15,
           "hours": 5,
-          "task": "Finalização apresentação Tropea / Reunião apresentação Tropea / Acompanhamento Positano",
+          "task": "Finalização da apresentação Tropea / Reunião de apresentação Tropea / Acompanhamento Positano",
           "tags": [
-            "Finalização apresentação Tropea",
-            "Reunião apresentação Tropea",
+            "Finalização da apresentação Tropea",
+            "Reunião de apresentação Tropea",
             "Acompanhamento Positano"
           ]
         },
@@ -402,11 +400,11 @@ window.HOURS_DASHBOARD_DATA = {
           "day": "17",
           "dayNumber": 17,
           "hours": 4.5,
-          "task": "Captação Lucas / Captação Mari / Arte Remédio / Placas Gioppo",
+          "task": "Captação Lucas / Captação Mari / Arte remédio / Placas Gioppo",
           "tags": [
             "Captação Lucas",
             "Captação Mari",
-            "Arte Remédio",
+            "Arte remédio",
             "Placas Gioppo"
           ]
         },
@@ -414,13 +412,13 @@ window.HOURS_DASHBOARD_DATA = {
           "day": "18 (sábado)",
           "dayNumber": 18,
           "hours": 8,
-          "task": "Ajuste apresentação Tropea / Arte dia do trabalhador / Arte dia das mães / Finalização Vídeo Amalfi / Arte caixa medicamento / Sensi Alto Padrão / Lucas Barra Velha",
+          "task": "Ajuste da apresentação Tropea / Arte Dia do Trabalhador / Arte Dia das Mães / Finalização Vídeo Amalfi / Arte caixa de medicamento / Sensi Alto Padrão / Lucas Barra Velha",
           "tags": [
-            "Ajuste apresentação Tropea",
-            "Arte dia do trabalhador",
-            "Arte dia das mães",
+            "Ajuste da apresentação Tropea",
+            "Arte Dia do Trabalhador",
+            "Arte Dia das Mães",
             "Finalização Vídeo Amalfi",
-            "Arte caixa medicamento",
+            "Arte caixa de medicamento",
             "Sensi Alto Padrão",
             "Lucas Barra Velha"
           ]
@@ -429,21 +427,21 @@ window.HOURS_DASHBOARD_DATA = {
           "day": "20",
           "dayNumber": 20,
           "hours": 5.5,
-          "task": "Analise site Vici / Finalização Sensi Alto Padrão / Continuação edição Lucas Barra Velha",
+          "task": "Análise do site VICI / Finalização Sensi Alto Padrão / Continuação da edição Lucas Barra Velha",
           "tags": [
-            "Analise site Vici",
+            "Análise do site VICI",
             "Finalização Sensi Alto Padrão",
-            "Continuação edição Lucas Barra Velha"
+            "Continuação da edição Lucas Barra Velha"
           ]
         },
         {
           "day": "21",
           "dayNumber": 21,
           "hours": 5,
-          "task": "Finalizaçào video do Lucas / Finalização video esgoto Chico / Artes Spazio",
+          "task": "Finalização vídeo do Lucas / Finalização do vídeo de esgoto Chico / Artes Spazio",
           "tags": [
-            "Finalizaçào video do Lucas",
-            "Finalização video esgoto Chico",
+            "Finalização vídeo do Lucas",
+            "Finalização do vídeo de esgoto Chico",
             "Artes Spazio"
           ]
         },
@@ -528,11 +526,11 @@ window.HOURS_DASHBOARD_DATA = {
         "day": "12",
         "dayNumber": 12,
         "hours": 5.5,
-        "task": "Captação acompoanhamento Gioppo e Positano / Fotos terrenos Lucas / Captação Pedro Transatlantico",
+        "task": "Captação acompanhamento Gioppo e Positano / Fotos terrenos Lucas / Captação Pedro Transatlântico",
         "tags": [
-          "Captação acompoanhamento Gioppo e Positano",
+          "Captação acompanhamento Gioppo e Positano",
           "Fotos terrenos Lucas",
-          "Captação Pedro Transatlantico"
+          "Captação Pedro Transatlântico"
         ]
       },
       "entries": [
@@ -594,31 +592,31 @@ window.HOURS_DASHBOARD_DATA = {
           "day": "11",
           "dayNumber": 11,
           "hours": 4,
-          "task": "Finalização livro de colorir",
+          "task": "Finalização do livro de colorir",
           "tags": [
-            "Finalização livro de colorir"
+            "Finalização do livro de colorir"
           ]
         },
         {
           "day": "12",
           "dayNumber": 12,
           "hours": 5.5,
-          "task": "Captação acompoanhamento Gioppo e Positano / Fotos terrenos Lucas / Captação Pedro Transatlantico",
+          "task": "Captação do acompanhamento Gioppo e Positano / Fotos dos terrenos Lucas / Captação Pedro Transatlântico",
           "tags": [
-            "Captação acompoanhamento Gioppo e Positano",
-            "Fotos terrenos Lucas",
-            "Captação Pedro Transatlantico"
+            "Captação do acompanhamento Gioppo e Positano",
+            "Fotos dos terrenos Lucas",
+            "Captação Pedro Transatlântico"
           ]
         },
         {
           "day": "13",
           "dayNumber": 13,
           "hours": 4,
-          "task": "Edição e finalização acompanhamento Gioppo / Tratamento fotos Terreno / Começo da edição Positano",
+          "task": "Edição e finalização do acompanhamento Gioppo / Tratamento de fotos do terreno / Início da edição Positano",
           "tags": [
-            "Edição e finalização acompanhamento Gioppo",
-            "Tratamento fotos Terreno",
-            "Começo da edição Positano"
+            "Edição e finalização do acompanhamento Gioppo",
+            "Tratamento de fotos do terreno",
+            "Início da edição Positano"
           ]
         },
         {
