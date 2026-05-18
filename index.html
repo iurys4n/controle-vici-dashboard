@@ -222,6 +222,48 @@
       font-weight: 700;
     }
 
+    .month-btn strong {
+      flex: 1;
+      text-align: left;
+    }
+
+    .month-check-toggle {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(52,199,89,0.28);
+      background: rgba(255,255,255,0.22);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      font-size: 0.72rem;
+      color: transparent;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+      transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+    }
+
+    .month-btn.is-checked .month-check-toggle {
+      background: linear-gradient(180deg, rgba(52,199,89,0.32), rgba(52,199,89,0.18));
+      border-color: rgba(52,199,89,0.62);
+      color: #1a7a38;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.64), 0 0 0 3px rgba(52,199,89,0.1);
+    }
+
+    .month-btn.is-checked {
+      background: linear-gradient(180deg, rgba(229,244,217,0.78), rgba(255,255,255,0.42));
+      border-color: rgba(52,199,89,0.34);
+      color: var(--text);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
+    }
+
+    .month-btn.is-checked .month-pill {
+      background: rgba(52,199,89,0.14);
+      color: #1a7a38;
+    }
+
     .panel-heading {
       display: flex;
       align-items: center;
@@ -1081,6 +1123,7 @@
     const MIGRATION_KEY = "hours-dashboard-fill-4h-v1";
     const ZERO_ABSENCE_KEY = "hours-dashboard-zero-absence-v1";
     const GRAMMAR_MIGRATION_KEY = "hours-dashboard-grammar-v1";
+    const CHECKED_KEY = "hours-dashboard-vici-checked-v1";
     const CLOUD_ENDPOINT = "https://script.google.com/macros/s/AKfycbyh3qFaOkBzxyDra03EsYdZC6onZOn7L1HKUe9oh_ObZ9QjmYi-ZxyBhy1NeVH0HmUf/exec";
     const TASK_CORRECTIONS = new Map([
       ["Edição video ISO e inicio de tratamento de fotos Eccelenza 2026", "Edição vídeo ISO e início de tratamento de fotos Eccellenza 2026"],
@@ -1132,6 +1175,7 @@
     let cloudSaveTimer = null;
     let selectedIndex = getCurrentMonthIndex();
     let showOnlyPending = false;
+    let checkedMonths = new Set(JSON.parse(localStorage.getItem(CHECKED_KEY) || "[]"));
 
     const fmtHours = (value) => value === null || value === undefined ? "—" : `${Number(value || 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}h`;
     const fmtPct = (value) => `${Math.round((value || 0) * 100)}%`;
@@ -1257,6 +1301,10 @@
         recalculateAll(targetData);
       }
       return changed;
+    }
+
+    function saveChecked() {
+      localStorage.setItem(CHECKED_KEY, JSON.stringify([...checkedMonths]));
     }
 
     function saveData() {
@@ -1464,8 +1512,17 @@
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "month-btn";
-        btn.innerHTML = `<strong>${month.name}</strong><span class="month-pill">${month.isActive ? fmtHours(month.totalHours) : "—"}</span>`;
-        btn.addEventListener("click", () => selectMonth(index));
+        btn.innerHTML = `<span class="month-check-toggle" aria-label="Marcar mês como fechado">✓</span><strong>${month.name}</strong><span class="month-pill">${month.isActive ? fmtHours(month.totalHours) : "—"}</span>`;
+        btn.addEventListener("click", (e) => {
+          if (e.target.closest(".month-check-toggle")) {
+            if (checkedMonths.has(month.name)) checkedMonths.delete(month.name);
+            else checkedMonths.add(month.name);
+            saveChecked();
+            render();
+            return;
+          }
+          selectMonth(index);
+        });
         nav.appendChild(btn);
 
         const option = document.createElement("option");
@@ -1491,8 +1548,9 @@
     function render() {
       const month = months[selectedIndex];
       document.getElementById("monthSelect").value = selectedIndex;
-      document.querySelectorAll(".month-btn").forEach((btn, index) => btn.classList.toggle("is-active", index === selectedIndex));
       document.querySelectorAll(".month-btn").forEach((btn, index) => {
+        btn.classList.toggle("is-active", index === selectedIndex);
+        btn.classList.toggle("is-checked", checkedMonths.has(months[index].name));
         const pill = btn.querySelector(".month-pill");
         if (pill) pill.textContent = months[index].isActive ? fmtHours(months[index].totalHours) : "—";
       });
