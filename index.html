@@ -801,10 +801,14 @@
     .tag-editor {
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: 6px;
       min-height: 32px;
+      overflow-x: auto;
+      scrollbar-width: none;
     }
+
+    .tag-editor::-webkit-scrollbar { display: none; }
 
     .activity-tag {
       display: inline-flex;
