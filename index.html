@@ -1145,7 +1145,8 @@
     const ZERO_ABSENCE_KEY = "hours-dashboard-zero-absence-v1";
     const GRAMMAR_MIGRATION_KEY = "hours-dashboard-grammar-v1";
     const CHECKED_KEY = "hours-dashboard-vici-checked-v1";
-    const CLOUD_ENDPOINT = "https://script.google.com/macros/s/AKfycbyh3qFaOkBzxyDra03EsYdZC6onZOn7L1HKUe9oh_ObZ9QjmYi-ZxyBhy1NeVH0HmUf/exec";
+    const CLOUD_ENDPOINT = "https://horas-backup.iury.workers.dev";
+    const CLOUD_STORE = "vici";
     const TASK_CORRECTIONS = new Map([
       ["Edição video ISO e inicio de tratamento de fotos Eccelenza 2026", "Edição vídeo ISO e início de tratamento de fotos Eccellenza 2026"],
       ["Finalização video Fitwell", "Finalização vídeo Fitwell"],
@@ -1375,7 +1376,7 @@
 
     function saveCloudData() {
       if (!CLOUD_ENDPOINT) return;
-      const payload = JSON.stringify({ action: "write", data: serializeData() });
+      const payload = JSON.stringify({ action: "write", store: CLOUD_STORE, data: serializeData() });
       fetch(CLOUD_ENDPOINT, {
         method: "POST",
         mode: "no-cors",
@@ -1400,7 +1401,7 @@
           resolve(response && response.data ? response.data : response);
         };
 
-        script.src = `${CLOUD_ENDPOINT}?action=read&callback=${encodeURIComponent(callbackName)}&t=${Date.now()}`;
+        script.src = `${CLOUD_ENDPOINT}?action=read&store=${CLOUD_STORE}&callback=${encodeURIComponent(callbackName)}&t=${Date.now()}`;
         script.onerror = () => {
           cleanup();
           reject(new Error("Falha ao carregar dados online."));
@@ -2122,6 +2123,7 @@
     loadCloudData()
       .then((remoteData) => {
         if (applyCloudData(remoteData)) render();
+        else queueCloudSave();
       })
       .catch((error) => {
         console.warn("Usando dados locais enquanto a base online não responde.", error);
