@@ -1068,6 +1068,15 @@
       .tag-input { min-width: 100%; }
       .search-panel { width: 100%; min-height: 34px; padding: 0 10px; }
     }
+
+    /* Modo só-leitura (clientes): esconde controles de edição. */
+    body.view-only #addDayBtn,
+    body.view-only .hours-stepper .hour-step,
+    body.view-only .day-date-input,
+    body.view-only .tag-add,
+    body.view-only .tag-remove,
+    body.view-only .tag-input { display: none !important; }
+    body.view-only .day-picker { cursor: default; }
   </style>
 </head>
 <body>
@@ -1147,6 +1156,9 @@
     const CHECKED_KEY = "hours-dashboard-vici-checked-v1";
     const CLOUD_ENDPOINT = "https://horas-backup.iury.workers.dev";
     const CLOUD_STORE = "vici";
+    const EDIT_TOKEN = (location.hash.match(/(?:^#|&)edit=([0-9a-fA-F]+)/) || [])[1] || "";
+    const EDIT_MODE = EDIT_TOKEN.length > 0;
+    if (!EDIT_MODE && document.body) document.body.classList.add("view-only");
     const TASK_CORRECTIONS = new Map([
       ["Edição video ISO e inicio de tratamento de fotos Eccelenza 2026", "Edição vídeo ISO e início de tratamento de fotos Eccellenza 2026"],
       ["Finalização video Fitwell", "Finalização vídeo Fitwell"],
@@ -1376,7 +1388,7 @@
 
     function saveCloudData() {
       if (!CLOUD_ENDPOINT) return;
-      const payload = JSON.stringify({ action: "write", store: CLOUD_STORE, data: serializeData() });
+      const payload = JSON.stringify({ action: "write", store: CLOUD_STORE, token: EDIT_TOKEN, data: serializeData() });
       fetch(CLOUD_ENDPOINT, {
         method: "POST",
         mode: "no-cors",
@@ -2123,7 +2135,7 @@
     loadCloudData()
       .then((remoteData) => {
         if (applyCloudData(remoteData)) render();
-        else queueCloudSave();
+        else if (EDIT_MODE) queueCloudSave();
       })
       .catch((error) => {
         console.warn("Usando dados locais enquanto a base online não responde.", error);
