@@ -1156,7 +1156,19 @@
     const CHECKED_KEY = "hours-dashboard-vici-checked-v1";
     const CLOUD_ENDPOINT = "https://horas-backup.iury.workers.dev";
     const CLOUD_STORE = "vici";
-    const EDIT_TOKEN = (location.hash.match(/(?:^#|&)edit=([0-9a-fA-F]+)/) || [])[1] || "";
+    let EDIT_TOKEN = "";
+    if (/(?:^#|[#&])edit(=|$|&)/.test(location.hash || "")) {
+      EDIT_TOKEN = (location.hash.match(/edit=([0-9a-fA-F]+)/) || [])[1] || "";
+      if (EDIT_TOKEN) {
+        try { localStorage.setItem("edit-token", EDIT_TOKEN); } catch (e) {}
+      } else {
+        EDIT_TOKEN = (localStorage.getItem("edit-token") || "").trim();
+        if (!EDIT_TOKEN) {
+          EDIT_TOKEN = (window.prompt("Código de edição:") || "").trim();
+          if (EDIT_TOKEN) { try { localStorage.setItem("edit-token", EDIT_TOKEN); } catch (e) {} }
+        }
+      }
+    }
     const EDIT_MODE = EDIT_TOKEN.length > 0;
     if (!EDIT_MODE && document.body) document.body.classList.add("view-only");
     const TASK_CORRECTIONS = new Map([
