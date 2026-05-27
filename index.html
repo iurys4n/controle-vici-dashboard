@@ -2667,9 +2667,10 @@
       const totals = new Map();
       month.entries.forEach((entry) => {
         normalizeEntryTags(entry);
-        if (!entry.tags.length) return;
-        const share = Number(entry.hours || 0) / entry.tags.length;
-        entry.tags.forEach((tag) => {
+        const tags = entry.tags.filter((tag) => !isNonWorkTag(tag));
+        if (!tags.length) return;
+        const share = Number(entry.hours || 0) / tags.length;
+        tags.forEach((tag) => {
           const firstWord = String(tag).trim().split(/\s+/)[0] || "";
           if (!firstWord) return;
           const key = catKey(firstWord);
@@ -2695,14 +2696,19 @@
         .map((item) => ({ label: item.label, hours: Math.round(item.hours * 2) / 2 }));
     }
 
+    function isNonWorkTag(tag) {
+      return /^(sem atividade|feriad|feria|folga)/.test(normTag(tag));
+    }
+
     function getTopActivities(month) {
       const totals = new Map();
       month.entries.forEach((entry) => {
         normalizeEntryTags(entry);
-        const tags = entry.tags.length ? entry.tags : ["Sem atividade"];
+        const tags = entry.tags.filter((tag) => !isNonWorkTag(tag));
+        if (!tags.length) return;
         const share = Number(entry.hours || 0) / tags.length;
         tags.forEach((tag) => {
-          totals.set(tag, Number(((totals.get(tag) || 0) + share).toFixed(2)));
+          totals.set(tag, (totals.get(tag) || 0) + share);
         });
       });
       return Array.from(totals, ([tag, hours]) => ({ tag, hours }))
