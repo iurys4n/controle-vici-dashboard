@@ -2689,9 +2689,10 @@
           rec.labels.forEach((cnt, lbl) => { if (cnt > bestCount) { bestCount = cnt; bestLabel = lbl; } });
           label = bestLabel.charAt(0).toUpperCase() + bestLabel.slice(1).toLowerCase();
         }
-        out.push({ label, hours: Number(rec.hours.toFixed(2)) });
+        out.push({ label, hours: rec.hours });
       });
-      return out.sort((a, b) => b.hours - a.hours).slice(0, 4);
+      return out.sort((a, b) => b.hours - a.hours).slice(0, 4)
+        .map((item) => ({ label: item.label, hours: Math.round(item.hours * 2) / 2 }));
     }
 
     function getTopActivities(month) {
@@ -2705,9 +2706,10 @@
         });
       });
       return Array.from(totals, ([tag, hours]) => ({ tag, hours }))
-        .filter((item) => item.hours > 0)
+        .filter((item) => item.hours > 0.01)
         .sort((a, b) => b.hours - a.hours)
-        .slice(0, 2);
+        .slice(0, 2)
+        .map((item) => ({ tag: item.tag, hours: Math.round(item.hours * 2) / 2 }));
     }
 
     function handleTagRemove(event) {
