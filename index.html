@@ -2457,6 +2457,20 @@
       gap: 10px;
       margin-bottom: 4px;
     }
+    .type-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .type-grid .activity {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      padding: 12px 13px;
+    }
+    .type-grid .activity span { font-size: 10px; }
+    .type-grid .activity strong { font-size: 16px; }
     .activity {
       padding: 13px 15px;
       display: flex;
@@ -2610,7 +2624,7 @@
     </div>
 
     <div class="section"><h2>Resumo por tipo</h2></div>
-    <div class="activity-grid">
+    <div class="type-grid">
       ${activityTypes.length ? activityTypes.map((item) => `
         <div class="activity glass"><span>${escapeHtml(item.label)}</span><strong>${fmtHours(item.hours)}</strong></div>
       `).join("") : `<div class="activity glass"><span>Sem tipos identificados</span><strong>0h</strong></div>`}
@@ -2644,6 +2658,12 @@
     }
 
     function getActivityTypes(month) {
+      const FIXED = { __ve: "Vídeo/Edição" };
+      function catKey(firstWord) {
+        const n = normTag(firstWord);
+        if (/^edic/.test(n) || /^video/.test(n)) return "__ve";
+        return n.replace(/(oes|aes|es|s)$/i, "");
+      }
       const totals = new Map();
       month.entries.forEach((entry) => {
         normalizeEntryTags(entry);
@@ -2652,7 +2672,7 @@
         entry.tags.forEach((tag) => {
           const firstWord = String(tag).trim().split(/\s+/)[0] || "";
           if (!firstWord) return;
-          const key = normTag(firstWord).replace(/(oes|aes|es|s)$/i, "");
+          const key = catKey(firstWord);
           if (!key) return;
           let rec = totals.get(key);
           if (!rec) { rec = { hours: 0, labels: new Map() }; totals.set(key, rec); }
@@ -2661,11 +2681,14 @@
         });
       });
       const out = [];
-      totals.forEach((rec) => {
+      totals.forEach((rec, key) => {
         if (rec.hours <= 0) return;
-        let bestLabel = "", bestCount = -1;
-        rec.labels.forEach((cnt, lbl) => { if (cnt > bestCount) { bestCount = cnt; bestLabel = lbl; } });
-        const label = bestLabel.charAt(0).toUpperCase() + bestLabel.slice(1).toLowerCase();
+        let label = FIXED[key];
+        if (!label) {
+          let bestLabel = "", bestCount = -1;
+          rec.labels.forEach((cnt, lbl) => { if (cnt > bestCount) { bestCount = cnt; bestLabel = lbl; } });
+          label = bestLabel.charAt(0).toUpperCase() + bestLabel.slice(1).toLowerCase();
+        }
         out.push({ label, hours: Number(rec.hours.toFixed(2)) });
       });
       return out.sort((a, b) => b.hours - a.hours).slice(0, 4);
