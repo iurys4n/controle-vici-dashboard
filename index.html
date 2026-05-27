@@ -2208,6 +2208,7 @@
 
     function buildMonthlyReport(month) {
       const topActivities = getTopActivities(month).slice(0, 2);
+      const activityTypes = getActivityTypes(month);
       const balanceLabel = month.balance < 0 ? "Saldo positivo" : month.balance > 0 ? "Pendente" : "Fechado";
       const balanceText = month.balance < 0 ? `+${fmtHours(Math.abs(month.balance))}` : fmtHours(month.balance);
       const clientIcon = CLIENT_ICON_WHITE || new URL("vici_favicon_512.png", location.href).href;
@@ -2515,15 +2516,18 @@
     @media print {
       .toolbar { display: none; }
       body { background: #fff; }
-      .page { max-width: none; padding: 6mm 10mm; }
+      .page { max-width: none; padding: 4mm 10mm; }
       .glass { box-shadow: none; background: #fff; border: 1px solid rgba(20,24,43,0.1); backdrop-filter: none; -webkit-backdrop-filter: none; }
       .glass::before { display: none; }
       .card.feature, .month-chip, .footer .client { box-shadow: none; }
 
-      .hero { margin-bottom: 8px; }
-      .kpis { margin-bottom: 8px; }
-      .section { margin: 15px 2px 8px; }
-      .footer { margin-top: 10px; }
+      .hero { margin-bottom: 5px; }
+      .kpis { margin-bottom: 5px; }
+      .card { min-height: 0; }
+      .section { margin: 9px 2px 5px; }
+      .activity-grid { gap: 6px; }
+      .activity { padding: 7px 14px; }
+      .footer { margin-top: 6px; }
     }
   </style>
 </head>
@@ -2605,6 +2609,13 @@
       `).join("") : `<div class="activity glass"><span>Nenhuma atividade registrada</span><strong>0h</strong></div>`}
     </div>
 
+    <div class="section"><h2>Resumo por tipo</h2></div>
+    <div class="activity-grid">
+      ${activityTypes.length ? activityTypes.map((item) => `
+        <div class="activity glass"><span>${escapeHtml(item.label)}</span><strong>${fmtHours(item.hours)}</strong></div>
+      `).join("") : `<div class="activity glass"><span>Sem tipos identificados</span><strong>0h</strong></div>`}
+    </div>
+
     <div class="section"><h2>Detalhamento diário</h2></div>
     <div class="table-wrap glass">
       <table>
@@ -2630,6 +2641,34 @@
   </main>
 </body>
 </html>`;
+    }
+
+    function getActivityTypes(month) {
+      const totals = new Map();
+      month.entries.forEach((entry) => {
+        normalizeEntryTags(entry);
+        if (!entry.tags.length) return;
+        const share = Number(entry.hours || 0) / entry.tags.length;
+        entry.tags.forEach((tag) => {
+          const firstWord = String(tag).trim().split(/\s+/)[0] || "";
+          if (!firstWord) return;
+          const key = normTag(firstWord).replace(/(oes|aes|es|s)$/i, "");
+          if (!key) return;
+          let rec = totals.get(key);
+          if (!rec) { rec = { hours: 0, labels: new Map() }; totals.set(key, rec); }
+          rec.hours += share;
+          rec.labels.set(firstWord, (rec.labels.get(firstWord) || 0) + 1);
+        });
+      });
+      const out = [];
+      totals.forEach((rec) => {
+        if (rec.hours <= 0) return;
+        let bestLabel = "", bestCount = -1;
+        rec.labels.forEach((cnt, lbl) => { if (cnt > bestCount) { bestCount = cnt; bestLabel = lbl; } });
+        const label = bestLabel.charAt(0).toUpperCase() + bestLabel.slice(1).toLowerCase();
+        out.push({ label, hours: Number(rec.hours.toFixed(2)) });
+      });
+      return out.sort((a, b) => b.hours - a.hours).slice(0, 4);
     }
 
     function getTopActivities(month) {
