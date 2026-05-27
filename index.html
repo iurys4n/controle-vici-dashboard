@@ -598,7 +598,7 @@
       display: grid;
       place-items: center;
       padding: 20px;
-      background: rgba(6, 4, 18, 0.62);
+      background: rgba(2, 3, 8, 0.74);
       backdrop-filter: blur(7px);
       -webkit-backdrop-filter: blur(7px);
     }
@@ -610,23 +610,23 @@
       flex-direction: column;
       padding: 22px;
       border-radius: 16px;
-      color: var(--text);
-      background: linear-gradient(150deg, rgba(34,31,54,0.97), rgba(17,16,28,0.97));
-      border: 1px solid rgba(255,255,255,0.14);
-      box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+      color: #f4f6ff;
+      background: linear-gradient(160deg, #14151b 0%, #08090d 100%);
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
     }
     .organize-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .organize-head h3 { margin: 0; font-size: 1.15rem; }
+    .organize-head h3 { margin: 0; font-size: 1.15rem; color: #ffffff; }
     .organize-close {
       flex: 0 0 auto;
       width: 32px; height: 32px;
       border: 0; border-radius: 9px;
-      background: rgba(255,255,255,0.08);
-      color: var(--text);
+      background: rgba(255,255,255,0.1);
+      color: #ffffff;
       font-size: 1.2rem; line-height: 1; cursor: pointer;
     }
-    .organize-close:hover { background: rgba(255,255,255,0.16); }
-    .organize-sub { margin: 8px 0 16px; color: var(--muted); font-size: 0.86rem; line-height: 1.4; }
+    .organize-close:hover { background: rgba(255,255,255,0.2); }
+    .organize-sub { margin: 8px 0 16px; color: rgba(244,246,255,0.66); font-size: 0.86rem; line-height: 1.4; }
     .organize-list { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px; }
     .og-group {
       display: flex; gap: 14px; align-items: flex-start;
@@ -634,35 +634,35 @@
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.09);
     }
-    .og-group.is-off { opacity: 0.45; }
+    .og-group.is-off { opacity: 0.4; }
     .og-toggle {
       flex: 0 0 auto; display: flex; align-items: center; gap: 7px;
       font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
-      color: var(--muted); cursor: pointer; padding-top: 3px;
+      color: rgba(244,246,255,0.55); cursor: pointer; padding-top: 3px;
     }
-    .og-toggle input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+    .og-toggle input { width: 15px; height: 15px; accent-color: #6e8cff; cursor: pointer; }
     .og-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
     .og-variants { display: flex; flex-wrap: wrap; gap: 6px; }
     .og-var {
       font: inherit; font-size: 0.8rem;
       padding: 4px 10px; border-radius: 999px;
       background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: var(--text); cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.14);
+      color: #eef1ff; cursor: pointer;
     }
-    .og-var.is-target { background: rgba(110,140,255,0.24); border-color: rgba(110,140,255,0.55); }
-    .og-var em { opacity: 0.55; font-style: normal; margin-left: 5px; }
+    .og-var.is-target { background: rgba(110,140,255,0.28); border-color: rgba(110,140,255,0.75); color: #ffffff; }
+    .og-var em { opacity: 0.5; font-style: normal; margin-left: 5px; }
     .og-result { display: flex; align-items: center; gap: 9px; }
-    .og-result span { font-size: 0.74rem; color: var(--muted); white-space: nowrap; }
+    .og-result span { font-size: 0.74rem; color: rgba(244,246,255,0.5); white-space: nowrap; }
     .og-final {
       flex: 1 1 auto; min-width: 0; min-height: 36px;
       padding: 0 12px; border-radius: 9px;
-      border: 1px solid rgba(110,140,255,0.4);
-      background: rgba(255,255,255,0.06);
-      color: #fff; font: inherit; outline: none;
+      border: 1px solid rgba(110,140,255,0.55);
+      background: rgba(110,140,255,0.1);
+      color: #ffffff; font: inherit; outline: none;
     }
-    .og-final:focus { border-color: rgba(110,140,255,0.7); box-shadow: 0 0 0 3px rgba(110,140,255,0.16); }
-    .organize-empty { color: var(--muted); text-align: center; padding: 26px 0; }
+    .og-final:focus { border-color: rgba(110,140,255,0.95); box-shadow: 0 0 0 3px rgba(110,140,255,0.2); }
+    .organize-empty { color: rgba(244,246,255,0.6); text-align: center; padding: 26px 0; }
     .organize-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
 
     h2 {
@@ -1972,6 +1972,16 @@
       }
       return prev[n];
     }
+    function tagTokens(s) {
+      return normTag(s).split(" ").filter(Boolean).map((w) => w.replace(/(oes|aes|es|s)$/i, ""));
+    }
+    function isTokenPrefix(shorter, longer) {
+      if (shorter.length === 0 || shorter.length >= longer.length) return false;
+      for (let i = 0; i < shorter.length; i++) {
+        if (shorter[i] !== longer[i]) return false;
+      }
+      return true;
+    }
     function tagsSimilar(a, b) {
       const na = normTag(a), nb = normTag(b);
       if (na === nb) return true;
@@ -1980,6 +1990,15 @@
       const maxLen = Math.max(na.length, nb.length);
       if (maxLen >= 6 && d <= 2) return true;
       if (maxLen >= 4 && d <= 1) return true;
+      // por palavras: "cartão de visitas" x "cartão de visitas Vici" (uma é prefixo da outra)
+      const ta = tagTokens(a), tb = tagTokens(b);
+      if (ta.length && tb.length) {
+        const shorter = ta.length <= tb.length ? ta : tb;
+        const longer = ta.length <= tb.length ? tb : ta;
+        if (shorter.length >= 2 && isTokenPrefix(shorter, longer)) return true;
+        // "figurinhas Vici" x "figurinha corretores" (mesma 1ª palavra, ambas curtas)
+        if (ta[0] === tb[0] && ta.length <= 2 && tb.length <= 2) return true;
+      }
       return false;
     }
 
@@ -2012,9 +2031,13 @@
       groupsMap.forEach((variants) => {
         if (variants.length < 2) return;
         variants.sort((a, b) => b.count - a.count || b.tag.length - a.tag.length);
-        groups.push({ variants, suggested: variants[0].tag });
+        const suggested = variants[0].tag;
+        const sameStem = new Set(variants.map((x) => stemTag(x.tag))).size === 1;
+        const closeAll = variants.every((x) => x.tag === suggested || levenshtein(normTag(x.tag), normTag(suggested)) <= 2);
+        const auto = sameStem || closeAll;
+        groups.push({ variants, suggested, auto });
       });
-      groups.sort((a, b) => a.suggested.localeCompare(b.suggested, "pt-BR"));
+      groups.sort((a, b) => (b.auto - a.auto) || a.suggested.localeCompare(b.suggested, "pt-BR"));
       return groups;
     }
 
@@ -2029,11 +2052,11 @@
         list.innerHTML = `<div class="organize-empty">Tudo certo por aqui — nada para corrigir.</div>`;
         applyBtn.style.display = "none";
       } else {
-        sub.textContent = `Encontrei ${organizeGroups.length} grupo(s) de tarefas parecidas em ${month.name}. Confira o nome final, ajuste se quiser e desmarque os que não quer alterar.`;
+        sub.textContent = `Encontrei ${organizeGroups.length} grupo(s) de tarefas parecidas em ${month.name}. As correções mais óbvias já vêm marcadas; revise, ajuste o nome e marque/desmarque o que quiser antes de aplicar.`;
         applyBtn.style.display = "";
         list.innerHTML = organizeGroups.map((g, i) => `
-          <div class="og-group" data-group="${i}">
-            <label class="og-toggle"><input type="checkbox" class="og-check" data-group="${i}" checked><span>Aplicar</span></label>
+          <div class="og-group${g.auto ? "" : " is-off"}" data-group="${i}">
+            <label class="og-toggle"><input type="checkbox" class="og-check" data-group="${i}" ${g.auto ? "checked" : ""}><span>Aplicar</span></label>
             <div class="og-body">
               <div class="og-variants">
                 ${g.variants.map((v) => `<button type="button" class="og-var${v.tag === g.suggested ? " is-target" : ""}" data-group="${i}" data-tag="${escapeHtml(v.tag)}">${escapeHtml(v.tag)}<em>×${v.count}</em></button>`).join("")}
