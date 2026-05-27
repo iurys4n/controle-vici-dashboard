@@ -701,7 +701,7 @@
 
     .entry {
       display: grid;
-      grid-template-columns: 58px 112px minmax(0, 1fr);
+      grid-template-columns: 58px 112px minmax(0, 1fr) 30px;
       gap: 10px;
       align-items: center;
       min-height: 42px;
@@ -710,6 +710,23 @@
       background: #ffffff;
       border: 0.5px solid rgba(20,24,40,0.08);
     }
+
+    .entry-delete {
+      justify-self: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      border: 0.5px solid rgba(236,188,189,0.4);
+      background: rgba(236,188,189,0.12);
+      color: #ecbcbd;
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.14s ease, background 0.14s ease;
+    }
+    .entry:hover .entry-delete { opacity: 1; }
+    .entry-delete:hover { background: rgba(236,188,189,0.26); border-color: rgba(236,188,189,0.6); }
 
     .entry.is-today {
       margin-bottom: 12px;
@@ -1134,7 +1151,7 @@
       .panel-actions { width: 100%; margin-left: 0; gap: 6px; flex-wrap: wrap; }
       .panel-tool { min-height: 34px; padding: 0 10px; font-size: 0.74rem; }
       h2 { font-size: 0.95rem; }
-      .entry { grid-template-columns: 50px 98px minmax(0, 1fr); }
+      .entry { grid-template-columns: 50px 98px minmax(0, 1fr) 28px; }
       .timeline { max-height: 560px; gap: 2px; }
       .entry { min-height: 38px; padding: 3px 7px; border-radius: 9px; gap: 7px; }
       .entry.header { min-height: 30px; font-size: 0.66rem; }
@@ -1151,6 +1168,7 @@
 
     /* Modo só-leitura (clientes): esconde controles de edição. */
     body.view-only #addDayBtn,
+    body.view-only .entry-delete,
     body.view-only #organizeBtn,
     body.view-only .hours-stepper .hour-step,
     body.view-only .day-date-input,
@@ -1755,6 +1773,7 @@
           <div>DIA</div>
           <div>HORAS</div>
           <div>ATIVIDADE</div>
+          <div></div>
         </div>
       ` + emptyMessage + displayEntries.map(({ entry, index }) => {
         const isToday = Number(entry.dayNumber) === todayDayNumber;
@@ -1776,6 +1795,7 @@
             <input class="entry-input tag-input" data-index="${index}" list="tagSuggestions" placeholder="" aria-label="Adicionar atividade">
             <button class="tag-add" type="button" data-index="${index}" aria-label="Adicionar atividade">+</button>
           </div>
+          <button class="entry-delete" type="button" data-index="${index}" aria-label="Excluir dia" title="Excluir dia">×</button>
         </div>
       `;
       }).join("");
@@ -1794,6 +1814,9 @@
       });
       timeline.querySelectorAll(".tag-remove").forEach((button) => {
         button.addEventListener("click", handleTagRemove);
+      });
+      timeline.querySelectorAll(".entry-delete").forEach((button) => {
+        button.addEventListener("click", handleEntryDelete);
       });
 
       const max = month.maxDay || { day: "-", hours: 0, task: "" };
@@ -1863,6 +1886,23 @@
         input.scrollIntoView({ block: "nearest" });
         input.focus();
       });
+    }
+
+    function handleEntryDelete(event) {
+      const index = Number(event.currentTarget.dataset.index);
+      const month = months[selectedIndex];
+      const entry = month.entries[index];
+      if (!entry) return;
+      const label = entry.day ? `o dia ${entry.day}` : "este dia";
+      const hasContent = (Number(entry.hours) || 0) > 0 || (Array.isArray(entry.tags) && entry.tags.length > 0);
+      const msg = hasContent
+        ? `Excluir ${label}? As horas e atividades lançadas neste dia serão removidas.`
+        : `Excluir ${label}?`;
+      if (!window.confirm(msg)) return;
+      month.entries.splice(index, 1);
+      recalculateAll();
+      saveData();
+      render();
     }
 
     function handleHourStep(event) {
