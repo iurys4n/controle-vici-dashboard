@@ -927,10 +927,10 @@
     .tag-editor {
       display: flex;
       align-items: center;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       gap: 6px;
       min-height: 32px;
-      overflow-x: auto;
+      overflow-x: visible;
       scrollbar-width: none;
     }
 
@@ -951,6 +951,133 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
       backdrop-filter: blur(14px) saturate(140%);
       -webkit-backdrop-filter: blur(14px) saturate(140%);
+    }
+
+    .activity-tag-text {
+      min-width: 0;
+      max-width: 360px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: text;
+    }
+
+    .tag-time {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex: none;
+      padding-left: 2px;
+      color: rgba(18,24,38,0.64);
+      font-size: 0.74rem;
+      font-weight: 800;
+    }
+
+    .tag-edit-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(244,246,252,0.58);
+      backdrop-filter: blur(10px) saturate(140%);
+      -webkit-backdrop-filter: blur(10px) saturate(140%);
+    }
+
+    .tag-edit-overlay[hidden] { display: none; }
+
+    .tag-edit-modal {
+      width: min(100%, 420px);
+      padding: 18px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(4,0,230,0.12);
+      box-shadow: 0 20px 70px rgba(60,80,130,0.2);
+    }
+
+    .tag-edit-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .tag-edit-head h3 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0;
+    }
+
+    .tag-edit-close {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      border: 1px solid rgba(4,0,230,0.12);
+      background: rgba(255,255,255,0.66);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+
+    .tag-edit-field {
+      margin-bottom: 12px;
+    }
+
+    .tag-edit-field label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .tag-edit-field input {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid rgba(4,0,230,0.14);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.72);
+      color: var(--text);
+      padding: 0 11px;
+      font: inherit;
+      outline: none;
+    }
+
+    .tag-edit-foot {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .hour-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .hour-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      border: 1px solid rgba(4,0,230,0.24);
+      background: rgba(4,0,230,0.08);
+      flex: none;
+    }
+
+    .hour-dot.full {
+      background: var(--accent);
+      border-color: rgba(4,0,230,0.6);
+    }
+
+    .hour-dot.half {
+      background: linear-gradient(90deg, var(--accent) 0 50%, rgba(4,0,230,0.08) 50% 100%);
+      border-color: rgba(4,0,230,0.6);
     }
 
     .tag-remove,
@@ -1273,6 +1400,27 @@
     </div>
   </div>
 
+  <div class="tag-edit-overlay" id="tagEditOverlay" hidden>
+    <div class="tag-edit-modal">
+      <div class="tag-edit-head">
+        <h3>Editar atividade</h3>
+        <button class="tag-edit-close" id="tagEditClose" type="button" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="tag-edit-field">
+        <label for="tagEditDesc">Descrição</label>
+        <input id="tagEditDesc" type="text">
+      </div>
+      <div class="tag-edit-field">
+        <label for="tagEditHours">Horas</label>
+        <input id="tagEditHours" type="number" min="0" step="0.5">
+      </div>
+      <div class="tag-edit-foot">
+        <button class="panel-tool" id="tagEditCancel" type="button">Cancelar</button>
+        <button class="panel-tool is-primary" id="tagEditSave" type="button">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const STORAGE_KEY = "hours-dashboard-edits-v5";
     const MIGRATION_KEY = "hours-dashboard-fill-4h-v1";
@@ -1281,6 +1429,8 @@
     const CHECKED_KEY = "hours-dashboard-vici-checked-v1";
     const CLOUD_ENDPOINT = "https://horas-backup.iury.workers.dev";
     const CLOUD_STORE = "vici";
+    const CENTRAL_STORE = "central";
+    const CENTRAL_TOKEN = "411f057c730dd69a2f853d43302d7cbf892b5360ea66f85c";
     let EDIT_TOKEN = "";
     if (/(?:^#|[#&])edit(=|$|&)/.test(location.hash || "")) {
       EDIT_TOKEN = (location.hash.match(/edit=([0-9a-fA-F]+)/) || [])[1] || "";
@@ -1347,6 +1497,7 @@
     let selectedIndex = getCurrentMonthIndex();
     let showOnlyPending = false;
     let checkedMonths = new Set(JSON.parse(localStorage.getItem(CHECKED_KEY) || "[]"));
+    let tagEditTarget = null;
 
     const fmtHours = (value) => value === null || value === undefined ? "—" : `${Number(value || 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}h`;
     const fmtPct = (value) => `${Math.round((value || 0) * 100)}%`;
@@ -1513,6 +1664,9 @@
             hours: Number(entry.hours || 0),
             task: activityText(entry),
             tags: Array.isArray(entry.tags) ? entry.tags : [],
+            tagHours: Array.isArray(entry.tagHours) ? entry.tagHours : undefined,
+            source: entry.source || undefined,
+            taskId: entry.taskId || undefined,
           })),
         })),
       };
@@ -1586,6 +1740,101 @@
         queueCloudSave();
       }
       return true;
+    }
+
+    function loadCentralTasks() {
+      return new Promise((resolve, reject) => {
+        const callbackName = `centralTasksCloud_${Date.now()}_${Math.round(Math.random() * 100000)}`;
+        const script = document.createElement("script");
+        const cleanup = () => {
+          delete window[callbackName];
+          script.remove();
+        };
+
+        window[callbackName] = (response) => {
+          cleanup();
+          resolve(response && Array.isArray(response.data) ? response.data : []);
+        };
+
+        script.src = `${CLOUD_ENDPOINT}?action=read&store=${CENTRAL_STORE}&token=${encodeURIComponent(CENTRAL_TOKEN)}&callback=${encodeURIComponent(callbackName)}&t=${Date.now()}`;
+        script.onerror = () => {
+          cleanup();
+          reject(new Error("Falha ao carregar tempos da central."));
+        };
+        document.body.appendChild(script);
+      });
+    }
+
+    function applyCentralTimeEntries(tasks) {
+      if (!Array.isArray(tasks)) return false;
+      let changed = false;
+      const dashboardEdits = new Map();
+      months.forEach((month) => {
+        month.entries
+          .filter((entry) => entry.source === "centralTimer")
+          .forEach((entry) => {
+            const editKey = `${month.name}|${entry.dayNumber}|${entry.taskId || activityText(entry)}`;
+            dashboardEdits.set(editKey, {
+              task: activityText(entry),
+              tags: Array.isArray(entry.tags) ? [...entry.tags] : [],
+              tagHours: Array.isArray(entry.tagHours) ? [...entry.tagHours] : null,
+            });
+          });
+        const before = month.entries.length;
+        month.entries = month.entries.filter((entry) => entry.source !== "centralTimer");
+        if (month.entries.length !== before) changed = true;
+      });
+
+      const grouped = new Map();
+      tasks
+        .filter((task) => task && task.client === "Vici" && Array.isArray(task.timeSessions))
+        .forEach((task) => {
+          task.timeSessions.forEach((session) => {
+            const date = String(session.date || "").slice(0, 10);
+            const title = String(session.title || task.title || "").trim();
+            const seconds = Number(session.seconds || 0);
+            if (!date || !title || seconds <= 0) return;
+            const key = `${date}|${task.id || title}|${title}`;
+            const current = grouped.get(key) || { date, taskId: task.id || "", title, seconds: 0 };
+            current.seconds += seconds;
+            grouped.set(key, current);
+          });
+        });
+
+      grouped.forEach((item) => {
+        const dateParts = item.date.split("-").map(Number);
+        const monthName = MONTH_NAMES[(dateParts[1] || 1) - 1];
+        const month = months.find((candidate) => candidate.name === monthName);
+        if (!month) return;
+        const editKey = `${month.name}|${dateParts[2]}|${item.taskId || item.title}`;
+        const edited = dashboardEdits.get(editKey);
+        const tags = edited && edited.tags.length ? edited.tags : [item.title];
+        const tagHours = edited && Array.isArray(edited.tagHours) ? edited.tagHours : null;
+        month.entries.push({
+          day: String(dateParts[2]),
+          dayNumber: dateParts[2],
+          hours: tagHours ? Number(tagHours.reduce((sum, value) => sum + Number(value || 0), 0).toFixed(2)) : Number((item.seconds / 3600).toFixed(2)),
+          task: tags.join(" / "),
+          tags: tags,
+          tagHours: tagHours || undefined,
+          source: "centralTimer",
+          taskId: item.taskId,
+        });
+        changed = true;
+      });
+
+      if (changed) {
+        months.forEach(sortEntriesByDay);
+        normalizeAllEntries();
+        recalculateAll();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          months: months.map((month) => ({
+            name: month.name,
+            entries: month.entries,
+          })),
+        }));
+      }
+      return changed;
     }
 
     function isExcludedTask(task) {
@@ -1674,6 +1923,45 @@
       return Number(value || 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 });
     }
 
+    function tagHourValue(entry, tagIndex) {
+      if (Array.isArray(entry.tagHours) && Number.isFinite(Number(entry.tagHours[tagIndex]))) {
+        return Number(entry.tagHours[tagIndex] || 0);
+      }
+      const tagCount = Array.isArray(entry.tags) && entry.tags.length ? entry.tags.length : 1;
+      return Number(entry.hours || 0) / tagCount;
+    }
+
+    function syncEntryHoursFromTags(entry) {
+      if (!Array.isArray(entry.tagHours)) return;
+      entry.hours = Number(entry.tagHours.reduce((sum, value) => sum + Number(value || 0), 0).toFixed(2));
+    }
+
+    function renderHourDots(hours) {
+      const rounded = Math.round(Number(hours || 0) * 2) / 2;
+      const full = Math.floor(rounded);
+      const half = rounded % 1 >= 0.5;
+      const total = Math.max(4, full + (half ? 1 : 0));
+      let html = '<span class="hour-dots" aria-hidden="true">';
+      for (let i = 0; i < total; i++) {
+        const cls = i < full ? "full" : (i === full && half ? "half" : "");
+        html += `<span class="hour-dot ${cls}"></span>`;
+      }
+      html += "</span>";
+      return html;
+    }
+
+    function renderActivityTag(entry, tag, index, tagIndex) {
+      const hours = tagHourValue(entry, tagIndex);
+      const label = `${fmtHourValue(hours)}h`;
+      return `
+        <span class="activity-tag" data-index="${index}" data-tag-index="${tagIndex}" title="Abrir atividade">
+          <span class="activity-tag-text">${escapeHtml(tag)}</span>
+          <span class="tag-time">${renderHourDots(hours)}</span>
+          <button class="tag-remove" type="button" data-index="${index}" data-tag-index="${tagIndex}" aria-label="Remover ${escapeHtml(tag)}">×</button>
+        </span>
+      `;
+    }
+
     function initControls() {
       const nav = document.getElementById("monthNav");
       const select = document.getElementById("monthSelect");
@@ -1716,8 +2004,15 @@
       document.getElementById("organizeOverlay").addEventListener("click", (event) => {
         if (event.target.id === "organizeOverlay") closeOrganize();
       });
+      document.getElementById("tagEditClose").addEventListener("click", closeTagEdit);
+      document.getElementById("tagEditCancel").addEventListener("click", closeTagEdit);
+      document.getElementById("tagEditSave").addEventListener("click", saveTagEdit);
+      document.getElementById("tagEditOverlay").addEventListener("click", (event) => {
+        if (event.target.id === "tagEditOverlay") closeTagEdit();
+      });
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && !document.getElementById("organizeOverlay").hidden) closeOrganize();
+        if (event.key === "Escape" && !document.getElementById("tagEditOverlay").hidden) closeTagEdit();
       });
     }
 
@@ -1799,9 +2094,7 @@
             <button class="hour-step" type="button" data-index="${index}" data-direction="1" aria-label="Aumentar horas">+</button>
           </div>
           <div class="tag-editor" data-index="${index}">
-            ${entry.tags.map((tag, tagIndex) => `
-              <span class="activity-tag">${escapeHtml(tag)}<button class="tag-remove" type="button" data-index="${index}" data-tag-index="${tagIndex}" aria-label="Remover ${escapeHtml(tag)}">×</button></span>
-            `).join("")}
+            ${entry.tags.map((tag, tagIndex) => renderActivityTag(entry, tag, index, tagIndex)).join("")}
             <input class="entry-input tag-input" data-index="${index}" list="tagSuggestions" placeholder="" aria-label="Adicionar atividade">
             <button class="tag-add" type="button" data-index="${index}" aria-label="Adicionar atividade">+</button>
           </div>
@@ -1824,6 +2117,9 @@
       });
       timeline.querySelectorAll(".tag-remove").forEach((button) => {
         button.addEventListener("click", handleTagRemove);
+      });
+      timeline.querySelectorAll(".activity-tag").forEach((tag) => {
+        tag.addEventListener("click", handleTagOpen);
       });
       timeline.querySelectorAll(".entry-delete").forEach((button) => {
         button.addEventListener("click", handleEntryDelete);
@@ -1922,6 +2218,7 @@
       if (!entry) return;
       const direction = Number(button.dataset.direction || 0);
       entry.hours = Math.max(0, Number((Number(entry.hours || 0) + direction * 0.5).toFixed(1)));
+      delete entry.tagHours;
       recalculateAll();
       saveData();
       render();
@@ -2144,6 +2441,7 @@
       if (!entry) return false;
       normalizeEntryTags(entry);
       entry.tags.push(tag);
+      if (Array.isArray(entry.tagHours)) entry.tagHours.push(0);
       entry.task = entry.tags.join(" / ");
       recalculateAll();
       saveData();
@@ -2679,8 +2977,9 @@
         normalizeEntryTags(entry);
         const tags = entry.tags.filter((tag) => !isNonWorkTag(tag));
         if (!tags.length) return;
-        const share = Number(entry.hours || 0) / tags.length;
-        tags.forEach((tag) => {
+        entry.tags.forEach((tag, tagIndex) => {
+          if (isNonWorkTag(tag)) return;
+          const share = tagHourValue(entry, tagIndex);
           const firstWord = String(tag).trim().split(/\s+/)[0] || "";
           if (!firstWord) return;
           const key = catKey(firstWord);
@@ -2716,9 +3015,9 @@
         normalizeEntryTags(entry);
         const tags = entry.tags.filter((tag) => !isNonWorkTag(tag));
         if (!tags.length) return;
-        const share = Number(entry.hours || 0) / tags.length;
-        tags.forEach((tag) => {
-          totals.set(tag, (totals.get(tag) || 0) + share);
+        entry.tags.forEach((tag, tagIndex) => {
+          if (isNonWorkTag(tag)) return;
+          totals.set(tag, (totals.get(tag) || 0) + tagHourValue(entry, tagIndex));
         });
       });
       return Array.from(totals, ([tag, hours]) => ({ tag, hours }))
@@ -2735,9 +3034,53 @@
       if (!entry) return;
       normalizeEntryTags(entry);
       entry.tags.splice(tagIndex, 1);
+      if (Array.isArray(entry.tagHours)) {
+        entry.tagHours.splice(tagIndex, 1);
+        syncEntryHoursFromTags(entry);
+      }
       entry.task = entry.tags.join(" / ");
       recalculateAll();
       saveData();
+      render();
+    }
+
+    function handleTagOpen(event) {
+      if (event.target.closest(".tag-remove")) return;
+      const index = Number(event.currentTarget.dataset.index);
+      const tagIndex = Number(event.currentTarget.dataset.tagIndex);
+      const entry = months[selectedIndex].entries[index];
+      if (!entry) return;
+      normalizeEntryTags(entry);
+      if (!entry.tags[tagIndex]) return;
+      tagEditTarget = { index, tagIndex };
+      document.getElementById("tagEditDesc").value = entry.tags[tagIndex];
+      document.getElementById("tagEditHours").value = tagHourValue(entry, tagIndex);
+      document.getElementById("tagEditOverlay").hidden = false;
+      window.requestAnimationFrame(() => document.getElementById("tagEditDesc").focus());
+    }
+
+    function closeTagEdit() {
+      tagEditTarget = null;
+      document.getElementById("tagEditOverlay").hidden = true;
+    }
+
+    function saveTagEdit() {
+      if (!tagEditTarget) return;
+      const index = tagEditTarget.index;
+      const tagIndex = tagEditTarget.tagIndex;
+      const entry = months[selectedIndex].entries[index];
+      if (!entry) return;
+      normalizeEntryTags(entry);
+      const clean = document.getElementById("tagEditDesc").value.trim();
+      if (!clean) return;
+      entry.tags[tagIndex] = clean;
+      entry.task = entry.tags.join(" / ");
+      entry.tagHours = entry.tags.map((_, i) => tagHourValue(entry, i));
+      entry.tagHours[tagIndex] = Math.max(0, Number(document.getElementById("tagEditHours").value || 0));
+      syncEntryHoursFromTags(entry);
+      recalculateAll();
+      saveData();
+      closeTagEdit();
       render();
     }
 
@@ -2801,6 +3144,10 @@
       .then((remoteData) => {
         if (applyCloudData(remoteData)) render();
         else if (EDIT_MODE) queueCloudSave();
+        return loadCentralTasks();
+      })
+      .then((tasks) => {
+        if (applyCentralTimeEntries(tasks)) render();
       })
       .catch((error) => {
         console.warn("Usando dados locais enquanto a base online não responde.", error);
