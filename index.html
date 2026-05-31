@@ -927,10 +927,13 @@
     .tag-editor {
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: 6px;
       min-height: 32px;
-      overflow-x: visible;
+      max-width: 100%;
+      min-width: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
       scrollbar-width: none;
     }
 
@@ -940,6 +943,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      flex: 0 0 auto;
       min-height: 28px;
       padding: 0 9px;
       border-radius: 999px;
@@ -955,7 +959,7 @@
 
     .activity-tag-text {
       min-width: 0;
-      max-width: 360px;
+      max-width: min(360px, 42vw);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
