@@ -713,9 +713,9 @@
       display: grid;
       grid-template-columns: 58px 112px minmax(0, 1fr) 30px;
       gap: 10px;
-      align-items: center;
-      min-height: 42px;
-      padding: 4px 10px;
+      align-items: start;
+      min-height: 46px;
+      padding: 7px 10px;
       border-radius: 9px;
       background: #ffffff;
       border: 0.5px solid rgba(20,24,40,0.08);
@@ -723,6 +723,7 @@
 
     .entry-delete {
       justify-self: center;
+      margin-top: 3px;
       width: 26px;
       height: 26px;
       border-radius: 8px;
@@ -793,6 +794,7 @@
       align-items: center;
       gap: 4px;
       min-height: 32px;
+      margin-top: 1px;
     }
 
     .hour-step {
@@ -926,24 +928,21 @@
 
     .tag-editor {
       display: flex;
-      align-items: center;
-      flex-wrap: nowrap;
+      align-items: flex-start;
+      flex-wrap: wrap;
       gap: 6px;
       min-height: 32px;
       max-width: 100%;
       min-width: 0;
-      overflow-x: auto;
-      overflow-y: hidden;
-      scrollbar-width: none;
+      overflow: visible;
     }
-
-    .tag-editor::-webkit-scrollbar { display: none; }
 
     .activity-tag {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      flex: 0 0 auto;
+      flex: 0 1 auto;
+      max-width: 100%;
       min-height: 28px;
       padding: 0 9px;
       border-radius: 999px;
@@ -959,7 +958,7 @@
 
     .activity-tag-text {
       min-width: 0;
-      max-width: min(360px, 42vw);
+      max-width: min(320px, 34vw);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
