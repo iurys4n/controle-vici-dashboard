@@ -1845,6 +1845,43 @@
       });
     }
 
+    // Escreve de volta na Central: renomeia a(s) tarefa(s) Vici cujo título bate
+    // com um nome antigo. O controle de horas é a fonte FINAL — então corrigir um
+    // nome aqui propaga pra Central (e pro quadro da Mari), não fica só local.
+    // Segurança: usa o MESMO token restrito da Vici (CENTRAL_TOKEN) que já lê a
+    // Central; o Worker funde por tarefa (anti-perda) e só deixa mexer no que é
+    // client==="Vici" — não há como encostar em tarefa de outro cliente.
+    // renameMap: Map(títuloAntigoEmMinúsculas -> NomeNovo). Só nomes que mudaram.
+    function pushCentralRename(renameMap) {
+      if (!EDIT_MODE || !renameMap || !renameMap.size) return;
+      const lookup = (txt) => renameMap.get(String(txt || "").trim().toLowerCase());
+      // Relê o estado FRESCO da Central antes de gravar, pra não sobrescrever uma
+      // edição que a Mari tenha feito entre o load da página e agora.
+      loadCentralTasks().then((tasks) => {
+        if (!Array.isArray(tasks) || !tasks.length) return;
+        let changed = false;
+        tasks.forEach((task) => {
+          if (!task || task.client !== "Vici") return;
+          let touched = false;
+          const newTitle = lookup(task.title);
+          if (newTitle && newTitle !== task.title) { task.title = newTitle; touched = true; }
+          if (Array.isArray(task.timeSessions)) {
+            task.timeSessions.forEach((s) => {
+              const ns = lookup(s && s.title);
+              if (ns && s && ns !== s.title) { s.title = ns; touched = true; }
+            });
+          }
+          if (touched) { task.updatedAt = Date.now(); changed = true; }
+        });
+        if (!changed) return;
+        fetch(CLOUD_ENDPOINT, {
+          method: "POST",
+          mode: "no-cors",
+          body: JSON.stringify({ action: "write", store: CENTRAL_STORE, token: CENTRAL_TOKEN, data: tasks, deleted: {} }),
+        }).catch((e) => console.warn("Não consegui atualizar o nome na Central agora.", e));
+      }).catch((e) => console.warn("Central indisponível para atualizar o nome.", e));
+    }
+
     function applyCentralTimeEntries(tasks) {
       if (!Array.isArray(tasks)) return false;
       let changed = false;
@@ -2656,6 +2693,7 @@
         });
         recalculateAll();
         saveData();
+        pushCentralRename(replaceMap); // propaga o rename de volta pra Central
         renderTagSuggestions();
         render();
       }
@@ -3324,6 +3362,9 @@
       syncEntryHoursFromTags(entry);
       recalculateAll();
       saveData();
+      if (previousTitle && clean !== previousTitle) {
+        pushCentralRename(new Map([[String(previousTitle).trim().toLowerCase(), clean]]));
+      }
       closeTagEdit();
       render();
     }
