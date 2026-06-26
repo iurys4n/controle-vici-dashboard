@@ -1326,6 +1326,38 @@
     body.view-only .tag-remove,
     body.view-only .tag-input { display: none !important; }
     body.view-only .day-picker { cursor: default; }
+
+    /* Sugestões de atividade (dropdown próprio — substitui o <datalist> nativo,
+       que não abre de forma confiável no PWA do iOS). */
+    .tag-suggest-pop {
+      position: fixed;
+      z-index: 9999;
+      min-width: 200px;
+      max-height: 260px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 6px;
+      border-radius: 16px;
+      border: 0.5px solid var(--line);
+      background: var(--panel-strong);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      box-shadow: var(--shadow);
+    }
+    .tag-suggest-pop[hidden] { display: none; }
+    .tag-suggest-item {
+      padding: 9px 12px;
+      border-radius: 11px;
+      font-size: 14px;
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tag-suggest-item:hover,
+    .tag-suggest-item.is-active { background: var(--line-soft); color: var(--accent); }
+    .tag-suggest-empty { padding: 9px 12px; font-size: 13px; color: var(--muted); }
   </style>
 </head>
 <body>
@@ -1440,10 +1472,12 @@
     const ZERO_ABSENCE_KEY = "hours-dashboard-zero-absence-v1";
     const GRAMMAR_MIGRATION_KEY = "hours-dashboard-grammar-v1";
     const CHECKED_KEY = "hours-dashboard-vici-checked-v1";
+    const DELETED_CENTRAL_KEY = "hours-dashboard-vici-deleted-central-v1";
     const CLOUD_ENDPOINT = "https://horas-backup.iury.workers.dev";
     const CLOUD_STORE = "vici";
     const CENTRAL_STORE = "central";
-    const CENTRAL_TOKEN = "411f057c730dd69a2f853d43302d7cbf892b5360ea66f85c";
+    // Token RESTRITO (página pública): servidor só devolve as tarefas da Vici.
+    const CENTRAL_TOKEN = "c5aae8c1b65e4b99095b54beac3dacd9e68953147842e9b7";
     let EDIT_TOKEN = "";
     if (/(?:^#|[#&])edit(=|$|&)/.test(location.hash || "")) {
       EDIT_TOKEN = (location.hash.match(/edit=([0-9a-fA-F]+)/) || [])[1] || "";
@@ -1511,6 +1545,27 @@
     let showOnlyPending = false;
     let checkedMonths = new Set(JSON.parse(localStorage.getItem(CHECKED_KEY) || "[]"));
     let tagEditTarget = null;
+    // Tarefas vindas da Central que foram excluídas AQUI (no controle de horas).
+    // Guardamos os ids para que uma re-sincronização não as traga de volta.
+    let deletedCentralIds = new Set((() => {
+      try { return JSON.parse(localStorage.getItem(DELETED_CENTRAL_KEY) || "[]"); } catch (e) { return []; }
+    })());
+    function saveDeletedCentral() {
+      try { localStorage.setItem(DELETED_CENTRAL_KEY, JSON.stringify([...deletedCentralIds])); } catch (e) {}
+    }
+    // Coleta os ids de tarefas-da-Central contidas numa entrada (modelo novo
+    // `centralTags` ou linha legada `source:"centralTimer"`).
+    function centralIdsForEntry(entry) {
+      const ids = [];
+      if (entry && Array.isArray(entry.centralTags)) {
+        entry.centralTags.forEach((rec) => { if (rec && rec.taskId) ids.push(rec.taskId); });
+      }
+      if (entry && entry.source === "centralTimer") {
+        if (Array.isArray(entry.taskIds)) entry.taskIds.forEach((id) => { if (id) ids.push(id); });
+        else if (entry.taskId) ids.push(entry.taskId);
+      }
+      return ids;
+    }
 
     const fmtHours = (value) => value === null || value === undefined ? "—" : `${Number(value || 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}h`;
     const fmtPct = (value) => `${Math.round((value || 0) * 100)}%`;
@@ -1593,6 +1648,11 @@
           if (correctedTags.join(" / ") !== entry.tags.join(" / ")) {
             entry.tags = correctedTags;
             entry.task = correctedTags.join(" / ");
+            if (Array.isArray(entry.centralTags)) {
+              entry.centralTags.forEach((rec) => {
+                if (TASK_CORRECTIONS.has(rec.title)) rec.title = TASK_CORRECTIONS.get(rec.title);
+              });
+            }
             changed = true;
           }
         });
@@ -1660,6 +1720,7 @@
         owner: data.owner,
         monthlyTarget: data.monthlyTarget,
         totals: data.totals,
+        deletedCentralIds: [...deletedCentralIds],
         months: months.map((month) => ({
           name: month.name,
           target: month.target,
@@ -1679,7 +1740,9 @@
             tags: Array.isArray(entry.tags) ? entry.tags : [],
             tagHours: Array.isArray(entry.tagHours) ? entry.tagHours : undefined,
             source: entry.source || undefined,
-            taskId: entry.taskId || undefined,
+            centralTags: Array.isArray(entry.centralTags) && entry.centralTags.length
+              ? entry.centralTags
+              : undefined,
           })),
         })),
       };
@@ -1728,6 +1791,10 @@
 
     function applyCloudData(remoteData) {
       if (!remoteData || !Array.isArray(remoteData.months)) return false;
+      if (Array.isArray(remoteData.deletedCentralIds)) {
+        remoteData.deletedCentralIds.forEach((id) => { if (id) deletedCentralIds.add(id); });
+        saveDeletedCentral();
+      }
       remoteData.months.forEach((remoteMonth) => {
         const month = months.find((item) => item.name === remoteMonth.name);
         if (month && Array.isArray(remoteMonth.entries)) {
@@ -1781,21 +1848,60 @@
     function applyCentralTimeEntries(tasks) {
       if (!Array.isArray(tasks)) return false;
       let changed = false;
-      const dashboardEdits = new Map();
+
+      // --- Phase 1: strip every CENTRAL-contributed activity tag out of all
+      // entries (keeping the manually-typed ones) and capture any manual edit
+      // (renamed activity / adjusted hours) so a re-sync preserves it.
+      // Central tags are tracked per-entry in `entry.centralTags` (new model)
+      // or live as a whole `source:"centralTimer"` row (legacy, pre-merge).
+      const dashboardEdits = new Map(); // `${month}|${day}|${taskId||title}` -> {task, hours}
       months.forEach((month) => {
-        month.entries
-          .filter((entry) => entry.source === "centralTimer")
-          .forEach((entry) => {
-            const editKey = `${month.name}|${entry.dayNumber}|${entry.taskId || activityText(entry)}`;
-            dashboardEdits.set(editKey, {
-              task: activityText(entry),
-              tags: Array.isArray(entry.tags) ? [...entry.tags] : [],
-              tagHours: Array.isArray(entry.tagHours) ? [...entry.tagHours] : null,
+        const remaining = [];
+        month.entries.forEach((entry) => {
+          normalizeEntryTags(entry);
+
+          // Legacy whole-row central entry: capture edits, then drop the row.
+          if (entry.source === "centralTimer" && !Array.isArray(entry.centralTags)) {
+            const ids = Array.isArray(entry.taskIds)
+              ? entry.taskIds
+              : (entry.taskId ? [entry.taskId] : []);
+            entry.tags.forEach((tag, i) => {
+              dashboardEdits.set(`${month.name}|${entry.dayNumber}|${ids[i] || tag}`, {
+                task: tag,
+                hours: tagHourValue(entry, i),
+              });
             });
-          });
-        const before = month.entries.length;
-        month.entries = month.entries.filter((entry) => entry.source !== "centralTimer");
-        if (month.entries.length !== before) changed = true;
+            changed = true;
+            return; // drop legacy central row (rebuilt merged below)
+          }
+
+          // New model: pull central tags back out, leaving manual tags intact.
+          if (Array.isArray(entry.centralTags) && entry.centralTags.length) {
+            if (!Array.isArray(entry.tagHours) || entry.tagHours.length !== entry.tags.length) {
+              entry.tagHours = entry.tags.map((_, i) => tagHourValue(entry, i));
+            }
+            entry.centralTags.forEach((rec) => {
+              let idx = entry.tags.findIndex((t) => t === rec.title);
+              if (idx < 0) idx = entry.tags.findIndex((t) => String(t).toLowerCase() === String(rec.title || "").toLowerCase());
+              const title = idx >= 0 ? entry.tags[idx] : rec.title;
+              const hours = idx >= 0 ? tagHourValue(entry, idx) : rec.hours;
+              dashboardEdits.set(`${month.name}|${entry.dayNumber}|${rec.taskId || title}`, { task: title, hours });
+              if (idx >= 0) {
+                entry.tags.splice(idx, 1);
+                entry.tagHours.splice(idx, 1);
+              }
+            });
+            delete entry.centralTags;
+            entry.task = entry.tags.join(" / ");
+            syncEntryHoursFromTags(entry);
+            changed = true;
+            // Drop an entry that existed ONLY for central tags (now empty).
+            if (entry.tags.length === 0 && Number(entry.hours || 0) === 0) return;
+          }
+
+          remaining.push(entry);
+        });
+        month.entries = remaining;
       });
 
       const grouped = new Map();
@@ -1814,26 +1920,56 @@
           });
         });
 
+      // --- Phase 2: bucket the central tasks by day so they all land on the
+      // SAME day entry (each task = one activity tag). One day = one row.
+      const byDay = new Map();
       grouped.forEach((item) => {
         const dateParts = item.date.split("-").map(Number);
         const monthName = MONTH_NAMES[(dateParts[1] || 1) - 1];
         const month = months.find((candidate) => candidate.name === monthName);
         if (!month) return;
-        const editKey = `${month.name}|${dateParts[2]}|${item.taskId || item.title}`;
-        const edited = dashboardEdits.get(editKey);
-        const tags = edited && edited.tags.length ? edited.tags : [item.title];
-        const tagHours = edited && Array.isArray(edited.tagHours) ? edited.tagHours : null;
-        month.entries.push({
-          day: String(dateParts[2]),
-          dayNumber: dateParts[2],
-          hours: tagHours ? Number(tagHours.reduce((sum, value) => sum + Number(value || 0), 0).toFixed(2)) : Number((item.seconds / 3600).toFixed(2)),
-          task: tags.join(" / "),
-          tags: tags,
-          tagHours: tagHours || undefined,
-          source: "centralTimer",
-          taskId: item.taskId,
+        const dayNumber = dateParts[2];
+        const dayKey = `${monthName}|${dayNumber}`;
+        const bucket = byDay.get(dayKey) || { month, dayNumber, tasks: [] };
+        bucket.tasks.push(item);
+        byDay.set(dayKey, bucket);
+      });
+
+      // --- Phase 3: merge each day's central tasks INTO that day's existing
+      // entry (manual or not). Create the entry only if the day has none.
+      byDay.forEach((bucket) => {
+        const { month, dayNumber } = bucket;
+        let entry = month.entries.find((e) => Number(e.dayNumber) === dayNumber);
+        if (!entry) {
+          entry = { day: String(dayNumber), dayNumber: dayNumber, hours: 0, task: "", tags: [], tagHours: [] };
+          month.entries.push(entry);
+        }
+        normalizeEntryTags(entry);
+        if (!Array.isArray(entry.tagHours) || entry.tagHours.length !== entry.tags.length) {
+          entry.tagHours = entry.tags.map((_, i) => tagHourValue(entry, i));
+        }
+        // Don't duplicate a tag the user already typed manually for this day.
+        const manualTitles = new Set(entry.tags.map((t) => String(t).toLowerCase()));
+        const centralTags = [];
+        bucket.tasks.forEach((item) => {
+          // Foi excluída aqui no controle de horas: não trazer de volta.
+          if (item.taskId && deletedCentralIds.has(item.taskId)) return;
+          const editKey = `${month.name}|${dayNumber}|${item.taskId || item.title}`;
+          const edited = dashboardEdits.get(editKey);
+          const title = edited && edited.task != null ? edited.task : item.title;
+          const hours = edited && edited.hours != null ? Number(edited.hours) : Number((item.seconds / 3600).toFixed(2));
+          if (manualTitles.has(String(title).toLowerCase())) return; // already there manually
+          entry.tags.push(title);
+          entry.tagHours.push(hours);
+          centralTags.push({ taskId: item.taskId || "", title, hours });
         });
-        changed = true;
+        if (centralTags.length) {
+          entry.centralTags = centralTags;
+          delete entry.source; // mixed manual+central → not a pure central row
+          entry.task = entry.tags.join(" / ");
+          syncEntryHoursFromTags(entry);
+          changed = true;
+        }
       });
 
       if (changed) {
@@ -2108,7 +2244,7 @@
           </div>
           <div class="tag-editor" data-index="${index}">
             ${entry.tags.map((tag, tagIndex) => renderActivityTag(entry, tag, index, tagIndex)).join("")}
-            <input class="entry-input tag-input" data-index="${index}" list="tagSuggestions" placeholder="" aria-label="Adicionar atividade">
+            <input class="entry-input tag-input" data-index="${index}" placeholder="" aria-label="Adicionar atividade">
             <button class="tag-add" type="button" data-index="${index}" aria-label="Adicionar atividade">+</button>
           </div>
           <button class="entry-delete" type="button" data-index="${index}" aria-label="Excluir dia" title="Excluir dia">×</button>
@@ -2218,6 +2354,8 @@
         ? `Excluir ${label}? As horas e atividades lançadas neste dia serão removidas.`
         : `Excluir ${label}?`;
       if (!window.confirm(msg)) return;
+      centralIdsForEntry(entry).forEach((id) => deletedCentralIds.add(id));
+      saveDeletedCentral();
       month.entries.splice(index, 1);
       recalculateAll();
       saveData();
@@ -2264,6 +2402,75 @@
         .map((tag) => `<option value="${escapeHtml(tag)}"></option>`)
         .join("");
     }
+
+    /* Dropdown próprio de sugestões: lista as atividades já lançadas quando o
+       campo recebe foco e filtra conforme a digitação. Funciona no iOS/PWA,
+       onde o <datalist> nativo não abre. */
+    (function setupTagAutocomplete() {
+      const pop = document.createElement("div");
+      pop.className = "tag-suggest-pop";
+      pop.hidden = true;
+      document.body.appendChild(pop);
+      let currentInput = null;
+
+      function positionPop(input) {
+        const r = input.getBoundingClientRect();
+        pop.style.left = r.left + "px";
+        pop.style.top = (r.bottom + 4) + "px";
+        pop.style.width = Math.max(r.width, 200) + "px";
+      }
+      function hide() {
+        pop.hidden = true;
+        pop.innerHTML = "";
+        currentInput = null;
+      }
+      function show(input) {
+        if (!EDIT_MODE) return;
+        currentInput = input;
+        const q = String(input.value || "").trim().toLowerCase();
+        let list = collectTagSuggestions();
+        if (q) list = list.filter((s) => s.toLowerCase().includes(q));
+        list = list.slice(0, 30);
+        pop.innerHTML = list.length
+          ? list.map((s) => `<div class="tag-suggest-item" data-val="${escapeHtml(s)}">${escapeHtml(s)}</div>`).join("")
+          : '<div class="tag-suggest-empty">Nenhuma atividade ainda</div>';
+        positionPop(input);
+        pop.hidden = false;
+      }
+
+      // pointerdown (não click) para agir antes do blur do campo.
+      pop.addEventListener("pointerdown", (e) => {
+        const item = e.target.closest(".tag-suggest-item");
+        if (!item || !currentInput) return;
+        e.preventDefault();
+        const index = Number(currentInput.dataset.index);
+        if (commitTag(index, item.dataset.val)) {
+          render();
+          focusTagInput(index);
+        }
+        hide();
+      });
+      document.addEventListener("focusin", (e) => {
+        const input = e.target.closest && e.target.closest(".tag-input");
+        if (input) show(input);
+      });
+      document.addEventListener("input", (e) => {
+        const input = e.target.closest && e.target.closest(".tag-input");
+        if (input && input === currentInput) show(input);
+      });
+      document.addEventListener("pointerdown", (e) => {
+        if (e.target.closest && (e.target.closest(".tag-suggest-pop") || e.target.closest(".tag-input"))) return;
+        hide();
+      }, true);
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape") hide(); });
+      window.addEventListener("scroll", () => {
+        if (!currentInput) return;
+        if (document.activeElement === currentInput) positionPop(currentInput); else hide();
+      }, true);
+      window.addEventListener("resize", () => {
+        if (currentInput && document.activeElement === currentInput) positionPop(currentInput);
+      });
+    })();
 
     // ===== Organizar tarefas =====
     let organizeGroups = [];
@@ -2438,6 +2645,14 @@
           });
           entry.tags = newTags;
           entry.task = entry.tags.join(" / ");
+          // Propaga o rename para o carimbo da Central; senão o próximo
+          // re-sync com a Central reinjeta o nome ANTIGO e a correção some.
+          if (Array.isArray(entry.centralTags)) {
+            entry.centralTags.forEach((rec) => {
+              const mapped = replaceMap.get(String(rec.title || "").toLowerCase().trim());
+              if (mapped) rec.title = mapped;
+            });
+          }
         });
         recalculateAll();
         saveData();
@@ -3046,6 +3261,14 @@
       const entry = months[selectedIndex].entries[index];
       if (!entry) return;
       normalizeEntryTags(entry);
+      const removedTag = entry.tags[tagIndex];
+      // Se essa atividade veio da Central, lembra que foi excluída aqui.
+      if (removedTag && Array.isArray(entry.centralTags)) {
+        entry.centralTags
+          .filter((rec) => rec && rec.taskId && String(rec.title || "").toLowerCase() === String(removedTag).toLowerCase())
+          .forEach((rec) => deletedCentralIds.add(rec.taskId));
+        saveDeletedCentral();
+      }
       entry.tags.splice(tagIndex, 1);
       if (Array.isArray(entry.tagHours)) {
         entry.tagHours.splice(tagIndex, 1);
@@ -3086,7 +3309,15 @@
       normalizeEntryTags(entry);
       const clean = document.getElementById("tagEditDesc").value.trim();
       if (!clean) return;
+      const previousTitle = entry.tags[tagIndex];
       entry.tags[tagIndex] = clean;
+      // Mantém o carimbo da Central em dia com o rename manual, senão o
+      // próximo re-sync com a Central traz o nome antigo de volta.
+      if (previousTitle && clean !== previousTitle && Array.isArray(entry.centralTags)) {
+        entry.centralTags.forEach((rec) => {
+          if (String(rec.title || "").toLowerCase() === String(previousTitle).toLowerCase()) rec.title = clean;
+        });
+      }
       entry.task = entry.tags.join(" / ");
       entry.tagHours = entry.tags.map((_, i) => tagHourValue(entry, i));
       entry.tagHours[tagIndex] = Math.max(0, Number(document.getElementById("tagEditHours").value || 0));
